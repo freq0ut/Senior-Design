@@ -138,7 +138,7 @@ while (trialCount < trialTotal)
     zS_Act1  = sqrt(R1_Act^2-xS_Act^2-yS_Act^2);
     zS_Act2  = -zS_Act1;
 
-    % Checking for impossibilities
+    % Checking for impossibilities due to random number generator
     if ( isreal(xS_Est) && isreal(yS_Est) && isreal(zS_Est1) && isreal(xS_Act) && isreal(yS_Act) && isreal(zS_Act1) )
         trialCount = trialCount + 1;
         
