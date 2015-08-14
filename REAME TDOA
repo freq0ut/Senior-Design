@@ -1,28 +1,44 @@
-This MATLAB script uses the Time-Difference-of-Arrival (TDOA) technique to determine the location of an isotropic point source. 
-Four sensors were used in a square geometric configuration. A cartesian co-ordinate system was used and the origin was centered
-on the 1st sensor.
+This MATLAB script uses the Time-Difference-of-Arrival (TDOA) technique to determine the location of an isotropic point
+source. Four sensors were used in a square geometric configuration. A cartesian co-ordinate system was used and the origin
+was centered on the 1st sensor.
 
----------------------------------------------------------
-|							|
-|					SOURCE		|
-|							|
-|							|
-|							|
-|	4	1					|
-|	X	X					|
-|							|
-|							|
-|							|
-|	X	X					|
-|	3	2					|
-|							|
----------------------------------------------------------
+    -------------------------------
+    |							                |
+    |					          SOURCE		|
+    |							                |
+    |							                |
+    |							                |
+    |   4       1					        |
+    |	  X	      X					        |
+    |							                |
+    |							                |
+    |						  	              |
+    |	  X   	  X					        |
+    |	  3     	2					        |
+    |							                |
+    -------------------------------
 
-Since all sensors are located in the same plane, an ambiguity arises when determining the x-coordinate of the location of the source.
+Since all sensors are located in the same plane, an ambiguity arises when determining the x-coordinate of the location of the
+source. Imagine that the source is infinitesimally small emanating SINE waves in all directions. If we just consider the
+crests of the SINE waves then we can draw concentric circles centered on the source emanating outward. These circles will
+increase in radius as time increases and they will be spaced equally apart by a distance exactly equal to one wavelength. 
 
-Imagine that the source is infinitesimally small emanating SINE waves in all directions. If we just consider the crests of the SINE
-waves then we can draw concentric circles centered on the source. These circles will increase in radius as time increases. They will
-be spaced equally apart by a distance exactly equal to one wavelength. 
+It's critically important that the sensors be spaced strictly less than half a wavelength apart. Visualize the concentric
+circles (crests of the SINE waves) emanating outward from the source. If the sensors are spaced far apart from one another
+then there will be several crests between the sensors which is bad. When the sensors sample, there is no way for us to
+determine the peak-of-interest (POI). The POI is the feature we will be looking at later on to help us determine the time
+delay between channels 2,3, and 4 using channel 1 as the reference. 
 
-
-
+            1-|      **
+              |     *  *
+              |   *      * 
+              |  *        *
+              | *          *
+              |*            *
+              *---+----------*----------------------------------------------------
+              |
+              |
+              |
+              |
+              |
+           -1-|
