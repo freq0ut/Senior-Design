@@ -1,9 +1,26 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Joshua Simmons                                                     %
-% July 2015                                                          %
-% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to %
-% a 30 kHz SINE wave underwater.                                     %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Joshua Simmons                                                        %
+% July 2015                                                             %
+% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a  %
+% 30 kHz SINE wave underwater.                                          %
+%                                                                       %
+% 2D Cartesian co-ordinate system with the origin centered on the 1st   %
+% sensor. Sensor geometry is square shaped residing all in the same     %
+% plane.                                                                %
+%                                                                       %
+%   Sensor layout                                                       %
+%   -------------------------------                                     %
+%   |                             |                                     %
+%   |                     S       |                                     %
+%   |                             |                                     %
+%   |     4       1               |                                     %
+%   |                             |                                     %
+%   |                             |                                     %
+%   |     3       2               |                                     %      
+%   |                             |                                     %
+%   -------------------------------                                     %
+%                                                                       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
 clear all;
@@ -232,6 +249,6 @@ while (trialCount < trialTotal)
         end
     end
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    pause(0.25);
+    pause(1.00);
 end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
