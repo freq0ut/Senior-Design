@@ -1,26 +1,47 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Joshua Simmons                                                        %
-% August 2015                                                           %
-% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a  %
-% 30 kHz SINE wave underwater.                                          %
-%                                                                       %
-% 3D Cartesian co-ordinate system with the origin centered on the 1st   %
-% sensor. Sensor geometry is square shaped residing all in the same     %
-% plane.                                                                %
-%                                                                       %
-%   Sensor layout                                                       %
-%   -------------------------------                                     %
-%   |                             |                                     %
-%   |                     S       |                                     %
-%   |                             |                                     %
-%   |     4       1               |                                     %
-%   |                             |                                     %
-%   |                             |                                     %
-%   |     3       2               |                                     %      
-%   |                             |                                     %
-%   -------------------------------                                     %
-%                                                                       %
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Joshua Simmons                                                          %
+% August 2015                                                             %
+% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a    %
+% 30 kHz SINE wave underwater.                                            %
+%                                                                         %
+% 3D Cartesian co-ordinate system with the origin centered on the 1st     %
+% sensor. Sensor geometry is square shaped residing all in the same       %
+% plane.                                                                  %
+%                                                                         %
+%   Sensor layout                                                         %
+%   -------------------------------                                       %
+%   |                             |                                       %
+%   |                     S       |                                       %
+%   |                             |                                       %
+%   |     4       1               |                                       %
+%   |                             |                                       %
+%   |                             |                                       %
+%   |     3       2               |                                       %      
+%   |                             |                                       %
+%   -------------------------------                                       %
+%                                                                         %
+% Sequence of Events                                                      %
+% 1. Initialization of parameters.                                        %
+% 2. Random number generator computes time delays for chan2, chan3 and    %
+%    chan4.                                                               %
+% 3. Input signals are constructed with the aforementioned time delays    %
+%    and white Gaussian noise is added.                                   %
+% 4. Cross-correlations (XC) are computed for chan2, chan3, and chan4     %
+%    using chan1 as the reference.                                        %
+% 5. The maximum y-coordinate of each XC is found and the corresponding   %
+%    x-coordinate is multiplied by the sample time. This is the           %
+%    estimated time delay.                                                %
+% 6. The time delays are plugged into formulas to find the grid           %
+%    coordinates of the source.                                           %
+% 7. Due to the random number generator, sometimes impossible source      %
+%    locations arise. These results turn out to be complex with an        %
+%    imaginary component. Because of this a filter is applied so that     %
+%    only real results pass thru. If the source location is real then     %
+%    the trialCounter increments else it does not.                        %
+% 8. Once the grid coordinated are found, the horizontal and elevation    %
+%    azimuths are computed.                                               %
+% 9. Results are visualized.                                              %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
 clear all;
@@ -57,7 +78,7 @@ fS = 1e6;  % Sample freq [Hz]
 tS = 1/fS; % Sample period [s]
 
 % POWER OF 2 STRONGLY PREFERRED TO TAKE ADVANTAGE OF FFT ACCELERATIONS
-N0 = 2^10; % #Samples per frame
+N0 = 2^7; % #Samples per frame
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -142,39 +163,15 @@ while (trialCount < trialTotal)
     if ( isreal(xS_Est) && isreal(yS_Est) && isreal(zS_Est1) && isreal(xS_Act) && isreal(yS_Act) && isreal(zS_Act1) )
         trialCount = trialCount + 1;
         
-        % Converting azimuths from radians to degrees
-        azimuthHorizontal_Est = atan2(yS_Est,xS_Est)  * (180/pi);
-        azimuthVertical_Est1  = atan2(zS_Est1,xS_Est) * (180/pi);
-        azimuthVertical_Est2  = atan2(zS_Est2,xS_Est) * (180/pi);
+        % Converting azimuths from radians to degrees and wrapping them so
+        % that they fall between 0 and 360 degrees
+        azimuthHorizontal_Est = wrapTo2Pi(atan2(yS_Est,xS_Est))  * (180/pi);
+        azimuthVertical_Est1  = wrapTo2Pi(atan2(zS_Est1,xS_Est)) * (180/pi);
+        azimuthVertical_Est2  = wrapTo2Pi(atan2(zS_Est2,xS_Est)) * (180/pi);
     
-        azimuthHorizontal_Act = atan2(yS_Act,xS_Act)  * (180/pi);
-        azimuthVertical_Act1  = atan2(zS_Act1,xS_Act) * (180/pi);
-        azimuthVertical_Act2  = atan2(zS_Act2,xS_Act) * (180/pi);        
-        
-        % Handling negative azimuths
-        if (azimuthHorizontal_Est < 0)
-            azimuthHorizontal_Est = azimuthHorizontal_Est + 360;
-        end
-
-        if (azimuthVertical_Est1 < 0)
-            azimuthVertical_Est1 = azimuthVertical_Est1 + 360;
-        end
-        
-        if (azimuthVertical_Est2 < 0)
-            azimuthVertical_Est2 = azimuthVertical_Est2 + 360;
-        end
-        
-        if (azimuthHorizontal_Act < 0)
-            azimuthHorizontal_Act = azimuthHorizontal_Act + 360;
-        end
-        
-        if (azimuthVertical_Act1 < 0)
-            azimuthVertical_Act1 = azimuthVertical_Act1 + 360;
-        end
-        
-        if (azimuthVertical_Act2 < 0)
-            azimuthVertical_Act2 = azimuthVertical_Act2 + 360;
-        end
+        azimuthHorizontal_Act = wrapTo2Pi(atan2(yS_Act,xS_Act))  * (180/pi);
+        azimuthVertical_Act1  = wrapTo2Pi(atan2(zS_Act1,xS_Act)) * (180/pi);
+        azimuthVertical_Act2  = wrapTo2Pi(atan2(zS_Act2,xS_Act)) * (180/pi);
 
         % Visualization
         
