@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Joshua Simmons
-% August 17, 2015
+% August 22, 2015
 % Uses Time-Difference-of-Arrival (TDOA) to determine the horizontal
 % and elevation azimuths to a 30 kHz SINE wave underwater.
 %
@@ -134,7 +134,7 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end    
     
-    % Adding Gaussian Noise for increased realism
+    % Adding White Gaussian Noise
     DATA = awgn(DATA,SNR);
     
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -167,7 +167,7 @@ for trialCount = 1:trialTotal;
     [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tS;
 
-    % Determing the location and azimuth to the source
+    % Determing the location to the source
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Calculating estimated source location
