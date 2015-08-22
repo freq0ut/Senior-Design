@@ -9,7 +9,7 @@ function [XC, XC_Lags] = XCORR(Y1,Y2)
     X = 1:N0; % X array for TRAPZ to integrate properly
     XC = zeros(1,2*N0-1);
     XC_Lags = zeros(1,2*N0-1);    
-    Y2 = padarray(Y2,[0,N0],0,'both'); % Y2 is padded with zeros on the 
+    Y2 = padarray(Y2,[0,N0],0,'both'); % Y2 is padded with zeros on
                                        % both sides TRIPLING its size.
     Y2s = zeros(1,N0); % Smaller Y2 array that will be shifted continuously.
     
