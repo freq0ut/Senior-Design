@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Joshua Simmons
-% August 17, 2015
+% August 23, 2015
 % Uses Time-Difference-of-Arrival (TDOA) to determine the horizontal
 % and elevation azimuths to a 30 kHz SINE wave underwater.
 %
@@ -34,6 +34,11 @@
 %  8. Once the grid coordinates of the source are found, the horizontal and 
 %     vertical azimuths are computed.
 %  9. Results are visualized.
+%
+% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM, XCORR) are 
+% in the same directory as this file. Or what you can do is add an extra
+% path to the folder where the support functions are located on your PC.
+% You can do this using the "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
