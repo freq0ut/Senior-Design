@@ -153,14 +153,16 @@ for trialCount = 1:trialTotal;
     [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tS;
     
-    % Calculating the estimated source location
+    % Calculating the Time-Of-Arrival
     TOA_Est  = FIND_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);    
     
+    % Calculating sphere radii
     R1_Est = vP*TOA_Est;
     R2_Est = vP*(TOA_Est+tD_Est(2));
     R3_Est = vP*(TOA_Est+tD_Est(3));
     R4_Est = vP*(TOA_Est+tD_Est(4));
     
+    % Determining source location
     S_Est(1) = (-R1_Est^2 + R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
     S_Est(2) = ( R1_Est^2 - R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
     S_Est(3) = ( R1_Est^2 + R2_Est^2 - R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
