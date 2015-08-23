@@ -50,9 +50,10 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 100;
-fig1_On = true;  % Time domain signals and cross-correlation functions
-fig2_On = true;  % Compass plots
+trialTotal = 100;  % Total number of iterations of main loop
+updateTime = 0.5;  % Delay after 1 complete iteration of main loop
+fig1_On = true;    % Turn on/off visual containing raw time signals and XCs
+fig2_On = true;    % Turn on/off visual containing compass and source grid
 
 % Source Properties
 SNR  = 10;        % Signal to Noise Ratio [dB]
@@ -285,5 +286,5 @@ for trialCount = 1:trialTotal;
                 hold off;
                 
     end
-    pause(0.5);
+    pause(updateTime);
 end
