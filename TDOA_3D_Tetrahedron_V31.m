@@ -48,45 +48,40 @@ clc;
 % Adding path to support functions
 addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\SONAR Direction Finding Methods\MATLAB Support Functions');
 
-% Global Simulation Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Global Simulation Parameters
 trialTotal = 100;
 fig1_On = true;  % Time domain signals and cross-correlation functions
 fig2_On = true;  % Compass plots
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Source Properties
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 SNR  = 10;        % Signal to Noise Ratio [dB]
 fSce = 30e3;      % Source freq [Hz]
 Tsce = 1/fSce;    % Source period [s]
 vP   = 1482;      % Propagation Velocity [m/s]
 lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Hydrophone Properties
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 D = lambda/4; % Hydrophone spacing [m]
 d = D / sqrt(2);  % For coordinates of hydrophones [m]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % ADC
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 fS = 1.8e6; % Sample freq [Hz]
 tS = 1/fS;  % Sample period [s]
-
-% POWER OF 2 STRONGLY PREFERRED TO TAKE ADVANTAGE OF FFT ACCELERATIONS
 N0 = 2^7; % #Samples per frame, RULE OF THUMB IS AT LEAST LAMBDA/4
 DATA = zeros(4,N0);  % Raw data
 DATA2 = zeros(4,N0); % Cleaned data
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%% MAIN ALGORITHM %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % START MAIN LOOP
-for trialCount = 1:trialTotal;    
-    % Constructing simulated input signals
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
+for trialCount = 1:trialTotal;
     % Simulating a source moving in the water.
     S_Act(1) = 100*(2*rand()-1);
     S_Act(2) = 100*(2*rand()-1);
@@ -127,10 +122,8 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end    
     
-    % Adding Gaussian Noise for increased realism
+    % Adding White Gaussian Noise
     DATA = awgn(DATA,SNR);
-    
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % Removing DC Offsets    
     chan = 1;
@@ -145,7 +138,6 @@ for trialCount = 1:trialTotal;
     end   
 
     % Determining the estimated time delays
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     tD_Est = [0;0;0;0];
     
     [XC12, XC12_Lags] = XCORR( DATA2(1,:), DATA2(2,:) );
@@ -159,12 +151,8 @@ for trialCount = 1:trialTotal;
     [XC14, XC14_Lags] = XCORR( DATA2(1,:), DATA2(4,:) );
     [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tS;
-
-    % Determing the location and azimuth to the source
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    % Calculating estimated source location
-    %TOA_Act2 = FIND_TOA(d,tD_Act(2),tD_Act(3),tD_Act(4),vP);
+    % Calculating the estimated source location
     TOA_Est  = FIND_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);    
     
     R1_Est = vP*TOA_Est;
@@ -175,7 +163,6 @@ for trialCount = 1:trialTotal;
     S_Est(1) = (-R1_Est^2 + R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
     S_Est(2) = ( R1_Est^2 - R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
     S_Est(3) = ( R1_Est^2 + R2_Est^2 - R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Calculating estimated azimuths to source
     azimuthH_Est = wrapTo2Pi(atan2(S_Est(2),S_Est(1))) * (180/pi);
@@ -292,7 +279,5 @@ for trialCount = 1:trialTotal;
                 hold off;
                 
     end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     pause(0.5);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
