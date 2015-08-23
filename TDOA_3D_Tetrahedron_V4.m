@@ -69,7 +69,7 @@ d = D / sqrt(2);  % For coordinates of hydrophones [m]
 % ADC
 fS = 1.8e6; % Sample freq [Hz]
 tS = 1/fS;  % Sample period [s]
-N0 = 2^7; % #Samples per frame, RULE OF THUMB IS AT LEAST LAMBDA/4
+N0 = 2^7;   % Samples per frame
 DATA = zeros(4,N0);  % Raw data
 DATA2 = zeros(4,N0); % Cleaned data
 
