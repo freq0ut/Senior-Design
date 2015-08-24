@@ -7,14 +7,22 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1000;  % Total number of iterations of main loop
+trialTotal = 1e4;  % Total number of iterations of main loop
+
+% ADC
+fS = 1.8e6;
+tS = 1/fS;
 
 % Source Properties
+SNR  = 10;        % Signal to Noise Ratio [dB]
+fSce = 30e3;      % Source freq [Hz]
+Tsce = 1/fSce;    % Source period [s]
 vP   = 1482;      % Propagation Velocity [m/s]
+lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location [x,y,z] in [m]
 
 % Hydrophone Properties
-D = 0.10;        % Hydrophone spacing [m]
+D = 0.1;          % Hydrophone spacing [m]
 
 % Azimuths Data
 DATA_Azimuths = zeros(2,trialTotal);
@@ -89,15 +97,12 @@ for trialCount = 1:trialTotal;
 end
 
 figure(1)
-    subplot(1,2,1);
-        boxplot(DATA_Azimuths(1,:),'labels',{'H'});
-        hold on;
-        line([-1,1],[5,5]);
-        line([-1,1],[-5,-5]);
-        hold off;
-    subplot(1,2,2);
-        boxplot(DATA_Azimuths(2,:),'labels',{'V'});
-        hold on;
-        line([-1,1],[5,5]);
-        line([-1,1],[-5,-5]);
-        hold off;
+    boxplot(DATA_Azimuths(1,:),'labels',{'H'});
+    hold on;
+    line([-1,1],[5,5]);
+    line([-1,1],[-5,-5]);
+    hold off;
+    
+% 5 degrees
+% D = 0.10,     fS =   1.8e6 EXCELLENT
+% D = lambda/3, fS = > 2 GHz

@@ -7,7 +7,11 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1000;  % Total number of iterations of main loop
+trialTotal = 1e4;  % Total number of iterations of main loop
+
+% ADC
+fS = 1.8e6;
+tS = 1/fS;
 
 % Source Properties
 SNR  = 10;        % Signal to Noise Ratio [dB]
@@ -18,7 +22,7 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location [x,y,z] in [m]
 
 % Hydrophone Properties
-D = 0.1;        % Hydrophone spacing [m]
+D = 0.40;        % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
 
 % Azimuths Data
@@ -52,7 +56,7 @@ for trialCount = 1:trialTotal;
     tD_Act(4) = (R4_Act-R1_Act) / vP;
     
     % Constructing estimated time delays
-    error = 1/(2*10e6);
+    error = tS;
     tD_Est = tD_Act;
     
     for i=2:4;
@@ -102,3 +106,8 @@ figure(1)
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
         hold off;
+
+% 5 degrees
+% D = 0.10,     fS =  25.0e6 mediocre
+% D = 0.40,     fS =   1.8e6 more mediocre
+% D = lambda/3, fS = 800.0e6

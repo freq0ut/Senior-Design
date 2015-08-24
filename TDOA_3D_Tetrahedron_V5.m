@@ -52,7 +52,7 @@ clc;
 % Global Simulation Parameters
 trialTotal = 1;  % Total number of iterations of main loop
 dwellTime = 0;   % Delay after 1 complete iteration of main loop
-fig1_On = true; % Turn on/off visual containing raw time signals and XCs
+fig1_On = true;  % Turn on/off visual containing raw time signals and XCs
 fig2_On = false; % Turn on/off visual containing compass and source grid
 
 % ADC
@@ -84,9 +84,9 @@ tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
     % Source location
-    S_Act(1) = 0-50*cos(2*pi*0.01*trialCount);
-    S_Act(2) = 0+8*sin(2*pi*0.01*trialCount);
-    S_Act(3) = -trialCount;
+    S_Act(1) = -87;%0-50*cos(2*pi*0.01*trialCount);
+    S_Act(2) = 13;%0+8*sin(2*pi*0.01*trialCount);
+    S_Act(3) = -68;%-trialCount;
 
     % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
