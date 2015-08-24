@@ -50,10 +50,10 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 100; % Total number of iterations of main loop
+trialTotal = 1;  % Total number of iterations of main loop
 dwellTime = 0;   % Delay after 1 complete iteration of main loop
-fig1_On = false; % Turn on/off visual containing raw time signals and XCs
-fig2_On = true;  % Turn on/off visual containing compass and source grid
+fig1_On = true; % Turn on/off visual containing raw time signals and XCs
+fig2_On = false; % Turn on/off visual containing compass and source grid
 
 % ADC
 fS = 1.8e6;  % Sample freq [Hz]
@@ -73,9 +73,7 @@ S_Act = [0;0;0];  % Initialization of source location
 % Hydrophone Properties
 D = lambda/4;    % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
-XCORR_i = ceil(D/(vP*tS));   % FAST_XCORR indices
-MAX_i1 = ceil(N0-D/(vP*tS)); % FAST_MAXIMUM start index
-MAX_i2 = ceil(N0+D/(vP*tS)); % FAST_MAXIMUM end index
+FAST_XCORR_i = ceil(D/(vP*tS));   % FAST_XCORR indices
 tD_Act = [0;0;0;0]; % Actual time delays
 tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
@@ -145,16 +143,16 @@ for trialCount = 1:trialTotal;
     end   
 
     % Determining the estimated time delays using Trapezoidal Rule
-    [XC12, XC12_Lags] = FAST_XCORR( DATA2(1,:), DATA2(2,:), XCORR_i);
-    [~,x] = FAST_MAXIMUM(XC12_Lags,XC12,MAX_i1,MAX_i2);
+    [XC12, XC12_Lags] = FAST_XCORR( DATA2(1,:), DATA2(2,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC12_Lags,XC12);
     tD_Est(2) = XC12_Lags(x)*tS;
     
-    [XC13, XC13_Lags] = FAST_XCORR( DATA2(1,:), DATA2(3,:), XCORR_i);
-    [~,x] = FAST_MAXIMUM(XC13_Lags,XC13,MAX_i1,MAX_i2);
+    [XC13, XC13_Lags] = FAST_XCORR( DATA2(1,:), DATA2(3,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC13_Lags,XC13);
     tD_Est(3) = XC13_Lags(x)*tS;
     
-    [XC14, XC14_Lags] = FAST_XCORR( DATA2(1,:), DATA2(4,:), XCORR_i);
-    [~,x] = FAST_MAXIMUM(XC14_Lags,XC14,MAX_i1,MAX_i2);
+    [XC14, XC14_Lags] = FAST_XCORR( DATA2(1,:), DATA2(4,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tS;
     
     % Calculating the estimated Time-Of-Arrival
