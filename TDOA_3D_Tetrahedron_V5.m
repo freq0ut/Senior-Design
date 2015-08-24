@@ -71,12 +71,12 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location
 
 % Hydrophone Properties
-D = lambda/3;    % Hydrophone spacing [m]
+D = lambda/4;    % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
 i1 = ceil(N0-D/(vP*tS)); % MAXIMUM start index
 i2 = ceil(N0+D/(vP*tS)); % MAXIMUM end index
-tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 tD_Act = [0;0;0;0]; % Actual time delays
+tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%% CONTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -143,7 +143,7 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end   
 
-    % Determining the estimated time delays using Trapezoidal Rule    
+    % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = XCORR( DATA2(1,:), DATA2(2,:) );
     [~,x] = MAXIMUM2(XC12_Lags,XC12,i1,i2);
     tD_Est(2) = XC12_Lags(x)*tS;
@@ -156,7 +156,7 @@ for trialCount = 1:trialTotal;
     [~,x] = MAXIMUM2(XC14_Lags,XC14,i1,i2);
     tD_Est(4) = XC14_Lags(x)*tS;
     
-    % Calculating the Time-Of-Arrival
+    % Calculating the estimated Time-Of-Arrival
     TOA_Est  = FIND_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);
     
     % Calculating estimated sphere radii
@@ -291,13 +291,13 @@ for trialCount = 1:trialTotal;
     pause(dwellTime);
 end
 
-% 100 Trials, 1.8 MHz, D = lambda/4
+% 100 Trials, 1.8 MHz, D = lambda/4, SNR = 20
 %
-% N0  Trap Err    Simpson Err
-%  6  1.0855e-06  1.0558e-06
-%  7  6.2607e-07  6.8481e-07
-%  8  4.2621e-07  4.6479e-07
-%  9  3.6170e-07  3.7935e-07
-% 10  3.0304e-07  3.2438e-07
-% 11  2.4658e-07  5.9599e-07
-% 12  4.2955e-07  6.7619e-20
+% N0  Trap Err      Simpson Err
+%  6  1.0855e-06    1.0558e-06
+%  7  6.2607e-07    6.8481e-07
+%  8  4.2621e-07    4.6479e-07
+%  9  3.6170e-07    3.7935e-07
+% 10  3.0304e-07    3.2438e-07
+% 11  2.4658e-07    5.9599e-07
+% 12  4.2955e-07    6.7619e-20

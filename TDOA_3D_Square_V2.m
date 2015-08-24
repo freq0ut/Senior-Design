@@ -1,46 +1,54 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% Joshua Simmons                                                          %
-% August 2015                                                             %
-% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a    %
-% 30 kHz SINE wave underwater.                                            %
-%                                                                         %
-% 3D Cartesian co-ordinate system with the origin centered on the 1st     %
-% sensor. Sensor geometry is square shaped residing all in the same       %
-% plane.                                                                  %
-%                                                                         %
-%   Sensor layout                                                         %
-%   -------------------------------                                       %
-%   |                             |                                       %
-%   |                     S       |                                       %
-%   |                             |                                       %
-%   |     4       1               |                                       %
-%   |                             |                                       %
-%   |                             |                                       %
-%   |     3       2               |                                       %      
-%   |                             |                                       %
-%   -------------------------------                                       %
-%                                                                         %
-% Sequence of Events                                                      %
-% 1. Initialization of parameters.                                        %
-% 2. Random number generator computes time delays for chan2, chan3 and    %
-%    chan4.                                                               %
-% 3. Input signals are constructed with the aforementioned time delays    %
-%    and white Gaussian noise is added.                                   %
-% 4. Cross-correlations (XC) are computed for chan2, chan3, and chan4     %
-%    using chan1 as the reference.                                        %
-% 5. The maximum y-coordinate of each XC is found and the corresponding   %
-%    x-coordinate is multiplied by the sample time. This is the           %
-%    estimated time delay.                                                %
-% 6. The time delays are plugged into formulas to find the grid           %
-%    coordinates of the source.                                           %
-% 7. Due to the random number generator, sometimes impossible source      %
-%    locations arise. These results turn out to be complex with an        %
-%    imaginary component. Because of this a filter is applied so that     %
-%    only real results pass thru. If the source location is real then     %
-%    the trialCounter increments else it does not.                        %
-% 8. Once the grid coordinated are found, the horizontal and elevation    %
-%    azimuths are computed.                                               %
-% 9. Results are visualized.                                              %
+% Joshua Simmons
+% August 2015
+% Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a
+% 30 kHz SINE wave underwater.
+%
+% 3D Cartesian co-ordinate system with the origin centered on the 1st
+% sensor. Sensor geometry is square shaped residing all in the same
+% plane.
+%
+%   Sensor layout
+%   -------------------------------
+%   |                             |
+%   |                     S       |
+%   |                             |
+%   |     4       1               |
+%   |                             |
+%   |                             |
+%   |     3       2               |
+%   |                             |
+%   -------------------------------
+%
+% Coordinates
+%   c1 = ( 0, 0,0)
+%   c2 = ( 0,-D,0)
+%   c3 = (-D,-D,0)
+%   c4 = (-D, 0,0)
+%   S  = (xS,yS,zS)
+%
+% Sequence of Events
+%  1. Initialization of parameters.
+%  2. Source location moves in a predictable manner. The actual time delays
+%     are computed from the source position.
+%  3. Input signals are constructed using the actual time delays. White
+%     Gaussian noise is added along with random DC offsets.
+%  4. DC Offsets are removed.
+%  5. Cross-correlations (XC) are computed for chan2, chan3, and chan4
+%     using chan1 as the reference.
+%  6. The maximum y-coordinate of each XC is found and the corresponding
+%     x-coordinate is multiplied by the sample time. This is the
+%     estimated time delay.
+%  7. The time delays are plugged into formulas to find the grid
+%     coordinates of the source.
+%  8. Once the grid coordinates of the source are found, the horizontal and 
+%     vertical azimuths are computed.
+%  9. Results are visualized.
+%
+% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM, XCORR) are 
+% in the same directory as this file. Or what you can do is add an extra
+% path to the folder where the support functions are located on your PC.
+% You can do this using the "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
@@ -52,13 +60,20 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 100; % Total number of iterations of main loop
-dwellTime = 0.5;  % Delay after 1 complete iteration of main loop
-fig1_On = false;  % Turn on/off visual containing raw time signals and XCs
-fig2_On = true;   % Turn on/off visual containing compass and source grid
+trialTotal = 10; % Total number of iterations of main loop
+dwellTime = 0; % Delay after 1 complete iteration of main loop
+fig1_On = false; % Turn on/off visual containing raw time signals and XCs
+fig2_On = true; % Turn on/off visual containing compass and source grid
+
+% ADC
+fS = 1.8e6; % Sample freq [Hz]
+tS = 1/fS;  % Sample period [s]
+N0 = 2^11;  % Samples per frame
+DATA =  zeros(4,N0); % Raw data
+DATA2 = zeros(4,N0); % Cleaned data
 
 % Source Properties
-SNR  = 10;        % Signal to Noise Ratio [dB]
+SNR  = 20;        % Signal to Noise Ratio [dB]
 fSce = 30e3;      % Source freq [Hz]
 Tsce = 1/fSce;    % Source period [s]
 vP   = 1482;      % Propagation Velocity [m/s]
@@ -66,14 +81,11 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location
 
 % Hydrophone Properties
-D = lambda/3; % Hydrophone spacing [m]
-
-% ADC
-fS = 20e6; % Sample freq [Hz]
-tS = 1/fS; % Sample period [s]
-N0 = 2^10; % Samples per frame
-DATA =  zeros(4,N0); % Raw data
-DATA2 = zeros(4,N0); % Cleaned data
+D = lambda/4; % Hydrophone spacing [m]
+i1 = ceil(N0-D/(vP*tS)); % MAXIMUM start index
+i2 = ceil(N0+D/(vP*tS)); % MAXIMUM end index
+tD_Act = [0;0;0;0]; % Actual time delays
+tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%% CONTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -82,9 +94,9 @@ DATA2 = zeros(4,N0); % Cleaned data
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
     % Simulating a source moving in the water.
-    S_Act(1) = 100*(2*rand()-1);
-    S_Act(2) = 100*(2*rand()-1);
-    S_Act(3) = 100*(2*rand()-1);
+    S_Act(1) = 50*(2*rand()-1);
+    S_Act(2) = 50*(2*rand()-1);
+    S_Act(3) = 50*(2*rand()-1);
 
     % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
@@ -96,7 +108,6 @@ for trialCount = 1:trialTotal;
     R3_Act = sqrt( (S_Act(1)+D)^2 + (S_Act(2)+D)^2 + (S_Act(3)  )^2 );
     R4_Act = sqrt( (S_Act(1)+D)^2 + (S_Act(2)  )^2 + (S_Act(3)  )^2 );
     
-    tD_Act = [0;0;0;0];
     TOA_Act = R1_Act/vP;
     tD_Act(2) = (R2_Act-R1_Act) / vP;
     tD_Act(3) = (R3_Act-R1_Act) / vP;
@@ -140,33 +151,30 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end   
 
-    % Determining the estimated time delays
-    tD_Est = [0;0;0;0];
-    
+    % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = XCORR( DATA2(1,:), DATA2(2,:) );
-    [~,x] = MAXIMUM(XC12_Lags,XC12);
+    [~,x] = MAXIMUM2(XC12_Lags,XC12,i1,i2);
     tD_Est(2) = XC12_Lags(x)*tS;
     
     [XC13, XC13_Lags] = XCORR( DATA2(1,:), DATA2(3,:) );
-    [~,x] = MAXIMUM(XC13_Lags,XC13);
+    [~,x] = MAXIMUM2(XC13_Lags,XC13,i1,i2);
     tD_Est(3) = XC13_Lags(x)*tS;
     
     [XC14, XC14_Lags] = XCORR( DATA2(1,:), DATA2(4,:) );
-    [~,x] = MAXIMUM(XC14_Lags,XC14);
+    [~,x] = MAXIMUM2(XC14_Lags,XC14,i1,i2);
     tD_Est(4) = XC14_Lags(x)*tS;
-
+    
     % Calculating the estimated Time-Of-Arrival
     TOA_Est = (tD_Est(3)^2-tD_Est(2)^2-tD_Est(4)^2) / ...
         (2*(tD_Est(2)-tD_Est(3)+tD_Est(4)));
     
-    % Calculating sphere radii
+    % Calculating estimated sphere radii
     R1_Est = vP*(TOA_Est);
     R2_Est = vP*(TOA_Est+tD_Est(2));
     R3_Est = vP*(TOA_Est+tD_Est(3));
     R4_Est = vP*(TOA_Est+tD_Est(4));
     
-    % Determining source location
-    S_Est = [0;0;0;0];
+    % Determining the estimated source location
     S_Est(1) = (R4_Est^2-R1_Est^2-D^2)/(2*D);
     S_Est(2) = (R2_Est^2-R1_Est^2-D^2)/(2*D);
     S_Est(3)  = sqrt(R1_Est^2-S_Est(1)^2-S_Est(2)^2);
@@ -188,10 +196,8 @@ for trialCount = 1:trialTotal;
 %%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
-    stringTrials = sprintf('Trial %0.0f / %0.0f', trialCount, trialTotal);
-    
     if (fig1_On == true)
-        % Stemming time domain (superimposed) and cross-correlations
+        % Raw time signal plots and XCs
         figure(1)
             subplot(2,2,1);
                 stem(t*1e6,DATA(1,:),'-b');
@@ -251,7 +257,10 @@ for trialCount = 1:trialTotal;
     end
         
     if (fig2_On == true)
-        % Comparint actual and estimated source azimuths
+        
+        stringTrials = sprintf('Trial %0.0f / %0.0f', trialCount, trialTotal);
+        
+        % Compass and source location plots 
         figure(2)
             subplot(2,2,1);
                 compass([0 S_Act(1)],[0 S_Act(2)],'-r');
@@ -295,8 +304,18 @@ for trialCount = 1:trialTotal;
                 xlim([-100,100]);
                 ylim([-100,100]);
                 title('XZ Plane');
-                hold off;
-                
+                hold off;              
     end
     pause(dwellTime);
 end
+
+% 100 Trials, 1.8 MHz, D = lambda/4, SNR = 20
+%
+% N0  Trap Err      Simpson Err
+%  6  1.1604e-06    1.1519e-06
+%  7  6.7252e-07    6.9488e-07
+%  8  4.3303e-07    4.6713e-07
+%  9  4.0482e-07    4.3488e-07
+% 10  3.3532e-07    3.6505e-07
+% 11  3.0297e-07    3.1261e-07
+% 12  3.1707e-07    3.2760e-07
