@@ -35,10 +35,10 @@
 %     vertical azimuths are computed.
 %  9. Results are visualized.
 %
-% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM, XCORR) are 
-% in the same directory as this file. Or what you can do is add an extra
-% path to the folder where the support functions are located on your PC.
-% You can do this using the "addpath" MatLab command.
+% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM2, XCORR, 
+% FIND_TOA) are in the same directory as this file. Or what you can do is
+% add an extra path to the folder where the support functions are located
+% on your PC. You can do this using the "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
