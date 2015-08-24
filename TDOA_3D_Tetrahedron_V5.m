@@ -35,10 +35,10 @@
 %     vertical azimuths are computed.
 %  9. Results are visualized.
 %
-% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM2, XCORR, 
-% FIND_TOA) are in the same directory as this file. Or what you can do is
-% add an extra path to the folder where the support functions are located
-% on your PC. You can do this using the "addpath" MatLab command.
+% Be sure that the support functions are in the same directory as this 
+% file. Or what you can do is add an extra path to the folder where the
+% support functions are located on your PC. You can do this using the 
+% "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
@@ -50,7 +50,7 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 10; % Total number of iterations of main loop
+trialTotal = 100; % Total number of iterations of main loop
 dwellTime = 0;   % Delay after 1 complete iteration of main loop
 fig1_On = false; % Turn on/off visual containing raw time signals and XCs
 fig2_On = true;  % Turn on/off visual containing compass and source grid
@@ -73,8 +73,9 @@ S_Act = [0;0;0];  % Initialization of source location
 % Hydrophone Properties
 D = lambda/4;    % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
-i1 = ceil(N0-D/(vP*tS)); % MAXIMUM start index
-i2 = ceil(N0+D/(vP*tS)); % MAXIMUM end index
+XCORR_i = ceil(D/(vP*tS));   % FAST_XCORR indices
+MAX_i1 = ceil(N0-D/(vP*tS)); % FAST_MAXIMUM start index
+MAX_i2 = ceil(N0+D/(vP*tS)); % FAST_MAXIMUM end index
 tD_Act = [0;0;0;0]; % Actual time delays
 tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
@@ -85,9 +86,9 @@ tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
     % Source location
-    S_Act(1) = 50*(2*rand()-1);
-    S_Act(2) = 50*(2*rand()-1);
-    S_Act(3) = 50*(2*rand()-1);
+    S_Act(1) = 0-50*cos(2*pi*0.01*trialCount);
+    S_Act(2) = 0+8*sin(2*pi*0.01*trialCount);
+    S_Act(3) = -trialCount;
 
     % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
@@ -144,16 +145,16 @@ for trialCount = 1:trialTotal;
     end   
 
     % Determining the estimated time delays using Trapezoidal Rule
-    [XC12, XC12_Lags] = XCORR( DATA2(1,:), DATA2(2,:) );
-    [~,x] = MAXIMUM2(XC12_Lags,XC12,i1,i2);
+    [XC12, XC12_Lags] = FAST_XCORR( DATA2(1,:), DATA2(2,:), XCORR_i);
+    [~,x] = FAST_MAXIMUM(XC12_Lags,XC12,MAX_i1,MAX_i2);
     tD_Est(2) = XC12_Lags(x)*tS;
     
-    [XC13, XC13_Lags] = XCORR( DATA2(1,:), DATA2(3,:) );
-    [~,x] = MAXIMUM2(XC13_Lags,XC13,i1,i2);
+    [XC13, XC13_Lags] = FAST_XCORR( DATA2(1,:), DATA2(3,:), XCORR_i);
+    [~,x] = FAST_MAXIMUM(XC13_Lags,XC13,MAX_i1,MAX_i2);
     tD_Est(3) = XC13_Lags(x)*tS;
     
-    [XC14, XC14_Lags] = XCORR( DATA2(1,:), DATA2(4,:) );
-    [~,x] = MAXIMUM2(XC14_Lags,XC14,i1,i2);
+    [XC14, XC14_Lags] = FAST_XCORR( DATA2(1,:), DATA2(4,:), XCORR_i);
+    [~,x] = FAST_MAXIMUM(XC14_Lags,XC14,MAX_i1,MAX_i2);
     tD_Est(4) = XC14_Lags(x)*tS;
     
     % Calculating the estimated Time-Of-Arrival

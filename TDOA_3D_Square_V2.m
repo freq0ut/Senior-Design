@@ -45,10 +45,10 @@
 %     vertical azimuths are computed.
 %  9. Results are visualized.
 %
-% Be sure that the support functions (TRAPZ, AVERAGE, MAXIMUM, XCORR) are 
-% in the same directory as this file. Or what you can do is add an extra
-% path to the folder where the support functions are located on your PC.
-% You can do this using the "addpath" MatLab command.
+% Be sure that the support functions are in the same directory as this 
+% file. Or what you can do is add an extra path to the folder where the
+% support functions are located on your PC. You can do this using the 
+% "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
@@ -153,15 +153,15 @@ for trialCount = 1:trialTotal;
 
     % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = XCORR( DATA2(1,:), DATA2(2,:) );
-    [~,x] = MAXIMUM2(XC12_Lags,XC12,i1,i2);
+    [~,x] = FAST_MAXIMUM(XC12_Lags,XC12,i1,i2);
     tD_Est(2) = XC12_Lags(x)*tS;
     
     [XC13, XC13_Lags] = XCORR( DATA2(1,:), DATA2(3,:) );
-    [~,x] = MAXIMUM2(XC13_Lags,XC13,i1,i2);
+    [~,x] = FAST_MAXIMUM(XC13_Lags,XC13,i1,i2);
     tD_Est(3) = XC13_Lags(x)*tS;
     
     [XC14, XC14_Lags] = XCORR( DATA2(1,:), DATA2(4,:) );
-    [~,x] = MAXIMUM2(XC14_Lags,XC14,i1,i2);
+    [~,x] = FAST_MAXIMUM(XC14_Lags,XC14,i1,i2);
     tD_Est(4) = XC14_Lags(x)*tS;
     
     % Calculating the estimated Time-Of-Arrival

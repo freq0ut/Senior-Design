@@ -1,4 +1,4 @@
-function [yMax, xMax] = MAXIMUM2(X,Y,i1,i2)
+function [yMax, xMax] = FAST_MAXIMUM(X,Y,i1,i2)
     % This function calculates the maximum Y value (yMax) and its
     % corresponding X location (xMax).
     
