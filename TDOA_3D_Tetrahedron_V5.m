@@ -71,7 +71,7 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location
 
 % Hydrophone Properties
-D = lambda/4;    % Hydrophone spacing [m]
+D = lambda/3;    % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
 FAST_XCORR_i = ceil(D/(vP*tS));   % FAST_XCORR indices
 tD_Act = [0;0;0;0]; % Actual time delays
