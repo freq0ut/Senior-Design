@@ -1,4 +1,5 @@
 function A = SIMPSON(X,Y)
+    % ***COMPLETED***
     % This function uses numerical integration using Simpsons Rule.
     % dx IS ASSUMED TO BE CONSTANT!
     

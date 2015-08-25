@@ -1,4 +1,5 @@
-function [XC, XC_Lags] = FAST_XCORR(Y1,Y2,i)
+function [XC, XC_Lags] = XCORR2(Y1,Y2,i)
+    % ***INCOMPLETE***
     % This function calculates cross-correlation.
     
     if length(Y1) ~= length(Y2);

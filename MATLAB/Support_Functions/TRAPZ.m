@@ -1,4 +1,5 @@
 function A = TRAPZ(X,Y)
+    % ***COMPLETED***
     % This function uses numerical integration using the trapezoidal rule.
     % dx IS ASSUMED TO BE CONSTANT!
 

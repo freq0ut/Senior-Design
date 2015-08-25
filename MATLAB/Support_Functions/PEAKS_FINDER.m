@@ -1,4 +1,5 @@
-function [pks, pkLocs] = FIND_LOCAL_MAXES(Y,xNBRS)
+function [pks, pkLocs] = PEAKS_FINDER(Y,xNBRS)
+    % ***INCOMPLETE***
     % This function finds local maxima in specified zones.
     % xNBRS = neighbors. This is a zone to the right and to the left
     % of local yMaxs that local maxes are computed.

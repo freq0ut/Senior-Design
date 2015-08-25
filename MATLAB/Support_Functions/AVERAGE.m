@@ -1,4 +1,5 @@
 function yAvg = AVERAGE(X,Y)
+    % ***COMPLETED***
     % This function calculates average y-value.
     % dx is ASSUMED TO BE CONSTANT!
     

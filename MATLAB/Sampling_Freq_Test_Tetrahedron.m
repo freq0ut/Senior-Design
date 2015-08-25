@@ -22,7 +22,7 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location [x,y,z] in [m]
 
 % Hydrophone Properties
-D = 0.1;        % Hydrophone spacing [m]
+D = lambda;        % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
 
 % Azimuths Data

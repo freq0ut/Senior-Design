@@ -10,7 +10,7 @@ clc;
 trialTotal = 1e4;  % Total number of iterations of main loop
 
 % ADC
-fS = 300e3;
+fS = 1800e3;
 tS = 1/fS;
 
 % Source Properties

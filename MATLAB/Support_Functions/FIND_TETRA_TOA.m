@@ -1,4 +1,5 @@
-function TOA = FIND_TOA(d,td2,td3,td4,vP)
+function TOA = FIND_TETRA_TOA(d,td2,td3,td4,vP)
+    % ***COMPLETED***
     % This function uses the Bisector Method to find the Time-Of-Arrival.
     
     function y = f(d,td2,td3,td4,TOA,vP)
