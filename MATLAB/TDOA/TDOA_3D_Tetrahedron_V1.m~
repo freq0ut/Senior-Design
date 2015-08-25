@@ -95,23 +95,22 @@ XCORR2i = ceil(D/(vP*tADC)); % XCORR2 indices
 
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
-
-    % Actual pinger location (xP,yP,zP)
+    % Pinger location (xP,yP,zP)
     Ping_Act(1) = pingMaxDist*(2*rand()-1);
     Ping_Act(2) = pingMaxDist*(2*rand()-1);
     Ping_Act(3) = pingMaxDist*(2*rand()-1);
 
-    % Actual azimuth to pinger
+    % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(Ping_Act(2),Ping_Act(1))) * (180/pi);
     azimuthV_Act = wrapTo2Pi(atan2(Ping_Act(3),Ping_Act(1))) * (180/pi);
     
-    % Actual sphere radii
+    % Calculating the actual sphere radii
     R_Act(1) = sqrt( (Ping_Act(1)-d)^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)  )^2 );
     R_Act(2) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)-d)^2 + (Ping_Act(3)  )^2 );
     R_Act(3) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)-d)^2 );
     R_Act(4) = sqrt( (Ping_Act(1)-d)^2 + (Ping_Act(2)-d)^2 + (Ping_Act(3)-d)^2 );
 
-    % Actual time delays
+    % Determining the actual time delays
     TOA_Act = R_Act(1)/vP;
     tD_Act(2) = (R_Act(2)-R_Act(1)) / vP;
     tD_Act(3) = (R_Act(3)-R_Act(1)) / vP;
@@ -120,19 +119,19 @@ for trialCount = 1:trialTotal;
     % Time array [s]
     t = 0:tADC:(N0-1)*tADC;
     
-    % DC Offsets
+    % Calculating random DC offsets
     DC_Offset(1) =  8;
     DC_Offset(2) =  6;
     DC_Offset(3) =  4;
     DC_Offset(4) =  2;
     
-    % Input signal construction (DC offsets and time delays)
+    % Constructing the input signals from the time delays and DC offsets
     DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1)));
     DATA_RAW(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2)));
     DATA_RAW(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3)));
     DATA_RAW(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4)));
     
-    % Input signal construction (adding actual time delay)
+    % Adding TOA to the input signals
     chan = 1;
     while (chan <= 4)
         for i=1:N0;
@@ -171,7 +170,7 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end   
 
-    % Estimated time delays (Trapezoidal Rule)
+    % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i);
     [~,x] = MAXIMUM(XC12_Lags,XC12);
     tD_Est(2) = XC12_Lags(x)*tADC;
@@ -184,21 +183,21 @@ for trialCount = 1:trialTotal;
     [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tADC;
     
-    % Estimated Time-Of-Arrival
+    % Calculating the estimated Time-Of-Arrival
     TOA_Est  = FIND_TETRA_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);
     
-    % Estimated sphere radii
+    % Calculating estimated sphere radii
     R_Est(1) = vP*TOA_Est;
     R_Est(2) = vP*(TOA_Est+tD_Est(2));
     R_Est(3) = vP*(TOA_Est+tD_Est(3));
     R_Est(4) = vP*(TOA_Est+tD_Est(4));
     
-    % Estimated pinger location (xP,yP,zP)
+    % Determining the estimated source location
     Ping_Est(1) = (-R_Est(1)^2 + R_Est(2)^2 + R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
     Ping_Est(2) = ( R_Est(1)^2 - R_Est(2)^2 + R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
     Ping_Est(3) = ( R_Est(1)^2 + R_Est(2)^2 - R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
     
-    % Estimated azimuths to pinger
+    % Calculating estimated azimuths to source
     azimuthH_Est = wrapTo2Pi(atan2(Ping_Est(2),Ping_Est(1))) * (180/pi);
     azimuthV_Est = wrapTo2Pi(atan2(Ping_Est(3),Ping_Est(1))) * (180/pi);
     
