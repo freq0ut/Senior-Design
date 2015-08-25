@@ -50,10 +50,14 @@ clc;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1;  % Total number of iterations of main loop
+trialTotal = 100;  % Total number of iterations of main loop
 dwellTime = 0;   % Delay after 1 complete iteration of main loop
-fig1_On = true;  % Turn on/off visual containing raw time signals and XCs
-fig2_On = false; % Turn on/off visual containing compass and source grid
+fig1_On = false; % Turn on/off visual containing raw time signals and XCs
+fig2_On = true;  % Turn on/off visual containing compass and source grid
+
+% Microcontroller Properties
+azimuthHs = zeros(1,10); % Median horizontal azimuth array
+azimuthVs = zeros(1,10); % Median vertical azimuth array
 
 % ADC
 fS = 1.8e6;  % Sample freq [Hz]
@@ -73,7 +77,7 @@ S_Act = [0;0;0];  % Initialization of source location
 % Hydrophone Properties
 D = lambda/3;    % Hydrophone spacing [m]
 d = D / sqrt(2); % For coordinates of hydrophones [m]
-FAST_XCORR_i = ceil(D/(vP*tS));   % FAST_XCORR indices
+FAST_XCORR_i = ceil(D/(vP*tS)); % FAST_XCORR indices
 tD_Act = [0;0;0;0]; % Actual time delays
 tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
@@ -84,9 +88,9 @@ tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
     % Source location
-    S_Act(1) = -87;%0-50*cos(2*pi*0.01*trialCount);
-    S_Act(2) = 13;%0+8*sin(2*pi*0.01*trialCount);
-    S_Act(3) = -68;%-trialCount;
+    S_Act(1) = -37-10*sin(2*pi*0.05*trialCount);
+    S_Act(2) = 7-2*trialCount;
+    S_Act(3) = -15+38*cos(2*pi*0.01*trialCount);
 
     % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
@@ -173,6 +177,10 @@ for trialCount = 1:trialTotal;
     azimuthH_Est = wrapTo2Pi(atan2(S_Est(2),S_Est(1))) * (180/pi);
     azimuthV_Est = wrapTo2Pi(atan2(S_Est(3),S_Est(1))) * (180/pi);
     
+    % Running Medians
+    azimuthHs(mod(trialCount,10)+1) = azimuthH_Est;
+    azimuthVs(mod(trialCount,10)+1) = azimuthV_Est;
+    
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -251,7 +259,7 @@ for trialCount = 1:trialTotal;
                 compass([0 scalarXY*S_Est(1)],[0 scalarXY*S_Est(2)],'-b');
                 %view([90, -90]);
                 string211 = sprintf('Actual: %0.1f (deg)', azimuthH_Act);
-                string212 = sprintf('Estimated: %0.1f (deg)', azimuthH_Est);
+                string212 = sprintf('Median Est: %0.1f (deg)', median(azimuthHs));
                 title({stringTrials,'Horizontal Azimuth',string211,string212,''});
                 hold off;
                 
@@ -263,7 +271,7 @@ for trialCount = 1:trialTotal;
                 compass([0 scalarXZ*S_Est(1)],[0 scalarXZ*S_Est(3)],'-b');
                 %view([90, -90]);
                 string221 = sprintf('Actual: %0.1f (deg)', azimuthV_Act);
-                string222 = sprintf('Estimated: %0.1f (deg)', azimuthV_Est);
+                string222 = sprintf('Median Est: %0.1f (deg)', median(azimuthVs));
                 title({stringTrials,'Vertical Azimuth',string221,string222,''});
                 hold off;
                 
