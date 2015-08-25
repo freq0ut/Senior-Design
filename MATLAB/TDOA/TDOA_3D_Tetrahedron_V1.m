@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author:  Joshua Simmons
-% Started: August 23, 2015
+% Started: August, 2015
 % Status:  Completed
 %
 % Description:

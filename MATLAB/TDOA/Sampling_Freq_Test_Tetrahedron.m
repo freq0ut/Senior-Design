@@ -2,31 +2,36 @@ close all;
 clear all;
 clc;
 
+addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1e4;  % Total number of iterations of main loop
+trialTotal = 10; % Total number of iterations of main loop
+DATA_AZ = zeros(2,trialTotal);
 
-% ADC
-fS = 1.8e6;
-tS = 1/fS;
-
-% Source Properties
-SNR  = 10;        % Signal to Noise Ratio [dB]
-fSce = 30e3;      % Source freq [Hz]
-Tsce = 1/fSce;    % Source period [s]
-vP   = 1482;      % Propagation Velocity [m/s]
-lambda = vP/fSce; % Wavelength [m]
-S_Act = [0;0;0];  % Initialization of source location [x,y,z] in [m]
+% Pinger Properties
+SNR  = 20;         % Signal to Noise Ratio [dB]
+fPing = 30e3;      % Source freq [Hz]
+tPing = 1/fPing;   % Source period [s]
+vP   = 1482;       % Propagation Velocity [m/s]
+lambda = vP/fPing; % Wavelength [m]
+pingMaxDist = 1;   % Pinger max distance from sensors [m]
 
 % Hydrophone Properties
-D = lambda;        % Hydrophone spacing [m]
-d = D / sqrt(2); % For coordinates of hydrophones [m]
+D = lambda/3;    % Hydrophone spacing [m]
+d = D/sqrt(2);   % For coordinates of hydrophones [m]
 
-% Azimuths Data
-DATA_Azimuths = zeros(2,trialTotal);
+% ADC
+fADC = 1.8e6;  % Sample freq [Hz]
+tADC = 1/fADC; % Sample period [s]
+N0 = 2^11;     % Samples per frame
+
+% Microcontroller Properties
+tD_Act = [0;0;0;0]; % Actual time delays
+tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%% CONTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -34,80 +39,79 @@ DATA_Azimuths = zeros(2,trialTotal);
 
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
-    % Simulating a source moving in the water.
-    S_Act(1) = 100*(2*rand()-1);
-    S_Act(2) = 100*(2*rand()-1);
-    S_Act(3) = 100*(2*rand()-1);
+    % Pinger location (xP,yP,zP)
+    Ping_Act(1) = pingMaxDist*(2*rand()-1);
+    Ping_Act(2) = pingMaxDist*(2*rand()-1);
+    Ping_Act(3) = pingMaxDist*(2*rand()-1);
 
     % Calculating actual azimuths to source
-    azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
-    azimuthV_Act = wrapTo2Pi(atan2(S_Act(3),S_Act(1))) * (180/pi);
+    azimuthH_Act = wrapTo2Pi(atan2(Ping_Act(2),Ping_Act(1))) * (180/pi);
+    azimuthV_Act = wrapTo2Pi(atan2(Ping_Act(3),Ping_Act(1))) * (180/pi);
     
+    % Calculating the actual sphere radii
+    R_Act(1) = sqrt( (Ping_Act(1)-d)^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)  )^2 );
+    R_Act(2) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)-d)^2 + (Ping_Act(3)  )^2 );
+    R_Act(3) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)-d)^2 );
+    R_Act(4) = sqrt( (Ping_Act(1)-d)^2 + (Ping_Act(2)-d)^2 + (Ping_Act(3)-d)^2 );
+
     % Determining the actual time delays
-    R1_Act = sqrt( (S_Act(1)-d)^2 + (S_Act(2)  )^2 + (S_Act(3)  )^2 );
-    R2_Act = sqrt( (S_Act(1)  )^2 + (S_Act(2)-d)^2 + (S_Act(3)  )^2 );
-    R3_Act = sqrt( (S_Act(1)  )^2 + (S_Act(2)  )^2 + (S_Act(3)-d)^2 );
-    R4_Act = sqrt( (S_Act(1)-d)^2 + (S_Act(2)-d)^2 + (S_Act(3)-d)^2 );
-    
-    tD_Act = [0;0;0;0];
-    TOA_Act = R1_Act/vP;
-    tD_Act(2) = (R2_Act-R1_Act) / vP;
-    tD_Act(3) = (R3_Act-R1_Act) / vP;
-    tD_Act(4) = (R4_Act-R1_Act) / vP;
-    
-    % Constructing estimated time delays
-    error = tS;
-    tD_Est = tD_Act;
-    
-    for i=2:4;
-        tD_Est(i) = tD_Est(i) + (2*rand()-1) * error;
-    end
+    TOA_Act = R_Act(1)/vP;
+    tD_Act(2) = (R_Act(2)-R_Act(1)) / vP;
+    tD_Act(3) = (R_Act(3)-R_Act(1)) / vP;
+    tD_Act(4) = (R_Act(4)-R_Act(1)) / vP;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
+    % Constructing estimated time delays
+    error = tADC;
+    
+    for i=2:4;
+        tD_Est(i) = tD_Act(i) + (2*rand()-1) * error;
+    end
+
     % Calculating the estimated Time-Of-Arrival
-    TOA_Est  = FIND_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);    
+    TOA_Est  = FIND_TETRA_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);
     
-    % Calculating sphere radii
-    R1_Est = vP*TOA_Est;
-    R2_Est = vP*(TOA_Est+tD_Est(2));
-    R3_Est = vP*(TOA_Est+tD_Est(3));
-    R4_Est = vP*(TOA_Est+tD_Est(4));
+    % Calculating estimated sphere radii
+    R_Est(1) = vP*TOA_Est;
+    R_Est(2) = vP*(TOA_Est+tD_Est(2));
+    R_Est(3) = vP*(TOA_Est+tD_Est(3));
+    R_Est(4) = vP*(TOA_Est+tD_Est(4));
     
-    % Determining source location
-    S_Est(1) = (-R1_Est^2 + R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-    S_Est(2) = ( R1_Est^2 - R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-    S_Est(3) = ( R1_Est^2 + R2_Est^2 - R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
+    % Determining the estimated source location
+    Ping_Est(1) = (-R_Est(1)^2 + R_Est(2)^2 + R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
+    Ping_Est(2) = ( R_Est(1)^2 - R_Est(2)^2 + R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
+    Ping_Est(3) = ( R_Est(1)^2 + R_Est(2)^2 - R_Est(3)^2 - R_Est(4)^2 + 2*d^2) / (4*d);
     
     % Calculating estimated azimuths to source
-    azimuthH_Est = wrapTo2Pi(atan2(S_Est(2),S_Est(1))) * (180/pi);
-    azimuthV_Est = wrapTo2Pi(atan2(S_Est(3),S_Est(1))) * (180/pi);
+    azimuthH_Est = wrapTo2Pi(atan2(Ping_Est(2),Ping_Est(1))) * (180/pi);
+    azimuthV_Est = wrapTo2Pi(atan2(Ping_Est(3),Ping_Est(1))) * (180/pi);
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%% PROCESSING DATA %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    DATA_Azimuths(1,trialCount) = azimuthH_Act - azimuthH_Est;
-    DATA_Azimuths(2,trialCount) = azimuthV_Act - azimuthV_Est;
+    DATA_AZ(1,trialCount) = azimuthH_Act - azimuthH_Est;
+    DATA_AZ(2,trialCount) = azimuthV_Act - azimuthV_Est;
 end
 
 figure(1)
     subplot(1,2,1);
-        boxplot(DATA_Azimuths(1,:),'labels',{'H'});
+        boxplot(DATA_AZ(1,:),'labels',{'H'});
         hold on;
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
         hold off;
     subplot(1,2,2);
-        boxplot(DATA_Azimuths(2,:),'labels',{'V'});
+        boxplot(DATA_AZ(2,:),'labels',{'V'});
         hold on;
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
         hold off;
 
 % 5 degrees
-% D = 0.10,     fS =  25.0e6 mediocre
-% D = 0.40,     fS =   1.8e6 more mediocre
-% D = lambda/3, fS = 800.0e6
+% D = 0.10,     fADC =  25.0e6 mediocre
+% D = 0.40,     fADC =   1.8e6 more mediocre
+% D = lambda/3, fADC = 800.0e6
