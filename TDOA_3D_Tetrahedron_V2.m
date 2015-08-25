@@ -1,6 +1,6 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Joshua Simmons
-% August 17, 2015
+% August 23, 2015
 % Uses Time-Difference-of-Arrival (TDOA) to determine the horizontal
 % and elevation azimuths to a 30 kHz SINE wave underwater.
 %
@@ -18,233 +18,293 @@
 %   S  = (xS,yS,zS)
 %
 % Sequence of Events
-% 1. Initialization of parameters.
-% 2. Random number generator computes time delays for chan2, chan3 and
-%    chan4.
-% 3. Input signals are constructed with the aforementioned time delays
-%    and white Gaussian noise is added.
-% 4. Cross-correlations (XC) are computed for chan2, chan3, and chan4
-%    using chan1 as the reference.
-% 5. The maximum y-coordinate of each XC is found and the corresponding
-%    x-coordinate is multiplied by the sample time. This is the
-%    estimated time delay.
-% 6. The time delays are plugged into formulas to find the grid
-%    coordinates of the source.
-% 7. Due to the random number generator, sometimes impossible source
-%    locations arise. These results turn out to be complex with an
-%    imaginary component. Because of this a filter is applied so that
-%    only real results pass thru. If the source location is real then
-%    the trialCounter increments else it does not.
-% 8. Once the grid coordinates of the source are found, the horizontal and 
-%    vertical azimuths are computed.
-% 9. Results are visualized.
+%  1. Initialization of parameters.
+%  2. Source location moves in a predictable manner. The actual time delays
+%     are computed from the source position.
+%  3. Input signals are constructed using the actual time delays. White
+%     Gaussian noise is added along with random DC offsets.
+%  4. DC Offsets are removed.
+%  5. Cross-correlations (XC) are computed for chan2, chan3, and chan4
+%     using chan1 as the reference.
+%  6. The maximum y-coordinate of each XC is found and the corresponding
+%     x-coordinate is multiplied by the sample time. This is the
+%     estimated time delay.
+%  7. The time delays are plugged into formulas to find the grid
+%     coordinates of the source.
+%  8. Once the grid coordinates of the source are found, the horizontal and 
+%     vertical azimuths are computed.
+%  9. Results are visualized.
+%
+% Be sure that the support functions are in the same directory as this 
+% file. Or what you can do is add an extra path to the folder where the
+% support functions are located on your PC. You can do this using the 
+% "addpath" MatLab command.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 close all;
 clear all;
 clc;
 
-% Global Simulation Parameters
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-trialTotal = 1;
-fig1_On = true;  % Time domain signals and cross-correlation functions
-fig2_On = true;  % Compass plots
+%%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+% Global Simulation Parameters
+trialTotal = 100;  % Total number of iterations of main loop
+dwellTime = 0;   % Delay after 1 complete iteration of main loop
+fig1_On = false; % Turn on/off visual containing raw time signals and XCs
+fig2_On = true;  % Turn on/off visual containing compass and source grid
+
+% Microcontroller Properties
+azimuthHs = zeros(1,10); % Median horizontal azimuth array
+azimuthVs = zeros(1,10); % Median vertical azimuth array
+
+% ADC
+fS = 1.8e6;  % Sample freq [Hz]
+tS = 1/fS;   % Sample period [s]
+N0 = 2^11;   % Samples per frame
+DATA  = zeros(4,N0); % Raw data
+DATA2 = zeros(4,N0); % Cleaned data
 
 % Source Properties
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-SNR  = 10;        % Signal to Noise Ratio [dB]
+SNR  = 20;        % Signal to Noise Ratio [dB]
 fSce = 30e3;      % Source freq [Hz]
 Tsce = 1/fSce;    % Source period [s]
 vP   = 1482;      % Propagation Velocity [m/s]
 lambda = vP/fSce; % Wavelength [m]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
+S_Act = [0;0;0];  % Initialization of source location
 
 % Hydrophone Properties
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-D = (1/3)*lambda; % Hydrophone spacing [m]
-d = D / sqrt(2);  % For coordinates of hydrophones [m]
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+D = lambda/3;    % Hydrophone spacing [m]
+d = D / sqrt(2); % For coordinates of hydrophones [m]
+FAST_XCORR_i = ceil(D/(vP*tS)); % FAST_XCORR indices
+tD_Act = [0;0;0;0]; % Actual time delays
+tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 
-
-% Sampler Properties
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-fS = 1e6;  % Sample freq [Hz]
-tS = 1/fS; % Sample period [s]
-
-% POWER OF 2 STRONGLY PREFERRED TO TAKE ADVANTAGE OF FFT ACCELERATIONS
-N0 = 2^7; % #Samples per frame
+%%%%%%%%%%%%%%%%%%%%%%% CONTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 % START MAIN LOOP
-for trialCount = 1:trialTotal;    
-    % Constructing simulated input signals
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+for trialCount = 1:trialTotal;
+    % Source location
+    S_Act(1) = -37-10*sin(2*pi*0.05*trialCount);
+    S_Act(2) = 7-2*trialCount;
+    S_Act(3) = -15+38*cos(2*pi*0.01*trialCount);
 
-    % Using a RNG to randomize the actual source location
-    for iter = 1:3;
-        rNum = rand() * 1e3; % Between 0 and 1000
+    % Calculating actual azimuths to source
+    azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
+    azimuthV_Act = wrapTo2Pi(atan2(S_Act(3),S_Act(1))) * (180/pi);
     
-        if ( rNum > 1 )
-            S_Act(iter) = rNum; % [xS_Act, yS_Act, zS_Act]
-        end
-    end
-
-    % Determining the actual time delays
+    % Calculating the actual sphere radii
     R1_Act = sqrt( (S_Act(1)-d)^2 + (S_Act(2)  )^2 + (S_Act(3)  )^2 );
     R2_Act = sqrt( (S_Act(1)  )^2 + (S_Act(2)-d)^2 + (S_Act(3)  )^2 );
     R3_Act = sqrt( (S_Act(1)  )^2 + (S_Act(2)  )^2 + (S_Act(3)-d)^2 );
     R4_Act = sqrt( (S_Act(1)-d)^2 + (S_Act(2)-d)^2 + (S_Act(3)-d)^2 );
-    
-    td2_Act = (R2_Act-R1_Act) / vP;
-    td3_Act = (R3_Act-R1_Act) / vP;
-    td4_Act = (R4_Act-R1_Act) / vP;
+
+    % Determining the actual time delays
+    TOA_Act = R1_Act/vP;
+    tD_Act(2) = (R2_Act-R1_Act) / vP;
+    tD_Act(3) = (R3_Act-R1_Act) / vP;
+    tD_Act(4) = (R4_Act-R1_Act) / vP;
     
     % Constructing the input signals from the time delays
-    t = 0:tS:(N0-1)*tS;       % Time Array [s]
-    chan1 = cos(2*pi*fSce*t); % Reference Signal
-    chan2 = cos(2*pi*fSce*(t+td2_Act));
-    chan3 = cos(2*pi*fSce*(t+td3_Act));
-    chan4 = cos(2*pi*fSce*(t+td4_Act));
-
-    % Adding Gaussian Noise for increased realism
-    chan1 = awgn(chan1,SNR);
-    chan2 = awgn(chan2,SNR);
-    chan3 = awgn(chan3,SNR);
-    chan4 = awgn(chan4,SNR);
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-    % Determining the estimated time delays from cross-correlation
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    [XC12, XC12lags] = xcorr(chan1,chan2,'coeff');
-    [XC12yMax, XC12yMaxK] = max(XC12);
-    td2_Est  = XC12lags(XC12yMaxK)*tS;
-
-    [XC13, XC13lags] = xcorr(chan1,chan3,'coeff');
-    [XC13yMax, XC13yMaxK] = max(XC13);
-    td3_Est  = XC13lags(XC13yMaxK)*tS;
-
-    [XC14, XC14lags] = xcorr(chan1,chan4,'coeff');
-    [XC14yMax, XC14yMaxK] = max(XC14);
-    td4_Est  = XC14lags(XC14yMaxK)*tS;
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-    % Determing the location and azimuth to the source
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    t = 0:tS:(N0-1)*tS; % Time Array [s]    
+    DATA(1,:) = cos(2*pi*fSce*t);             % Channel 1 (reference)
+    DATA(2,:) = cos(2*pi*fSce*(t+tD_Act(2))); % Channel 2
+    DATA(3,:) = cos(2*pi*fSce*(t+tD_Act(3))); % Channel 3
+    DATA(4,:) = cos(2*pi*fSce*(t+tD_Act(4))); % Channel 4
     
-    % Calculating estimated source location
-    r2_Est = vP*td2_Est;
-    r3_Est = vP*td3_Est;
-    r4_Est = vP*td4_Est;
-    
-    R1_Est = ( (r2_Est)^2+(r3_Est)^2+(r4_Est)^2+(4*d)^2 ) / ...
-        ( -2*(r2_Est+r3_Est+r4_Est) );
-    
-    R2_Est = R1_Est + r2_Est;
-    R3_Est = R1_Est + r3_Est;
-    R4_Est = R1_Est + r4_Est;
-    
-    xS_Est = (-R1_Est^2 + R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-    yS_Est = ( R1_Est^2 - R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-    zS_Est = ( R1_Est^2 + R2_Est^2 - R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
-
-    % Converting azimuths from radians to degrees and wrapping them so
-    % that they fall between 0 and 360 degrees
-    azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
-    azimuthV_Act = wrapTo2Pi(atan2(S_Act(3),S_Act(1))) * (180/pi);
+    % Adding DC offsets (-5 to 5)
+    chan = 1;
+    while (chan <= 4)
+        DC_Offset = (2*rand()-1)*5;
         
-    azimuthH_Est = wrapTo2Pi(atan2(yS_Est,xS_Est)) * (180/pi);
-    azimuthV_Est = wrapTo2Pi(atan2(zS_Est,xS_Est)) * (180/pi);
+        for i=1:N0;
+            DATA(chan,i) = DATA(chan,i) + DC_Offset;        
+        end
+        
+        chan = chan+1;
+    end    
+    
+    % Adding White Gaussian Noise
+    DATA = awgn(DATA,SNR);
 
-    % Visualization
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    % Removing DC Offsets    
+    chan = 1;
+    while (chan <= 4)
+        DC_Offset = AVERAGE(t,DATA(chan,:));
         
-    stringTrials = sprintf('Trial %0.0f / %0.0f', trialCount, trialTotal);
+        for i=1:N0;
+            DATA2(chan,i) = DATA(chan,i) - DC_Offset;        
+        end
         
+        chan = chan+1;
+    end   
+
+    % Determining the estimated time delays using Trapezoidal Rule
+    [XC12, XC12_Lags] = FAST_XCORR( DATA2(1,:), DATA2(2,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC12_Lags,XC12);
+    tD_Est(2) = XC12_Lags(x)*tS;
+    
+    [XC13, XC13_Lags] = FAST_XCORR( DATA2(1,:), DATA2(3,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC13_Lags,XC13);
+    tD_Est(3) = XC13_Lags(x)*tS;
+    
+    [XC14, XC14_Lags] = FAST_XCORR( DATA2(1,:), DATA2(4,:), FAST_XCORR_i);
+    [~,x] = MAXIMUM(XC14_Lags,XC14);
+    tD_Est(4) = XC14_Lags(x)*tS;
+    
+    % Calculating the estimated Time-Of-Arrival
+    TOA_Est  = FIND_TOA(d,tD_Est(2),tD_Est(3),tD_Est(4),vP);
+    
+    % Calculating estimated sphere radii
+    R1_Est = vP*TOA_Est;
+    R2_Est = vP*(TOA_Est+tD_Est(2));
+    R3_Est = vP*(TOA_Est+tD_Est(3));
+    R4_Est = vP*(TOA_Est+tD_Est(4));
+    
+    % Determining the estimated source location
+    S_Est(1) = (-R1_Est^2 + R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
+    S_Est(2) = ( R1_Est^2 - R2_Est^2 + R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
+    S_Est(3) = ( R1_Est^2 + R2_Est^2 - R3_Est^2 - R4_Est^2 + 2*d^2) / (4*d);
+    
+    % Calculating estimated azimuths to source
+    azimuthH_Est = wrapTo2Pi(atan2(S_Est(2),S_Est(1))) * (180/pi);
+    azimuthV_Est = wrapTo2Pi(atan2(S_Est(3),S_Est(1))) * (180/pi);
+    
+    % Running Medians
+    azimuthHs(mod(trialCount,10)+1) = azimuthH_Est;
+    azimuthVs(mod(trialCount,10)+1) = azimuthV_Est;
+    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
     if (fig1_On == true)
-    
-        % Stemming time domain (superimposed) and cross-correlations
+        % Raw time signal plots and XCs
         figure(1)
             subplot(2,2,1);
+                stem(t*1e6,DATA(1,:),'-b');
                 hold on;
-                stem(t*1e6,chan1,'-b');
-                stem(t*1e6,chan2,'-r');
-                stem(t*1e6,chan3,'-m');
-                stem(t*1e6,chan4,'-g');
-                line([Tsce/2*1e6, Tsce/2*1e6],[-1.5, 1.5]);
-                hold off;
+                stem(t*1e6,DATA(2,:),'-r');
+                stem(t*1e6,DATA(3,:),'-m');
+                stem(t*1e6,DATA(4,:),'-g');
                 xlabel('Time [\mus]');
                 ylabel('Amplitude');
                 legend({'Chan1','Chan2','Chan3','Chan4'});
-                string111 = sprintf('f_{samp} = %0.0f [MHz]', fS/1e6);
+                string111 = sprintf('f_{samp} = %0.2f [MHz]', fS/1e6);
                 string112 = sprintf('SNR = %0.0f [dB]', SNR);
                 title({string111,string112});
-            subplot(2,2,2);
-                hold on;
-                stem(XC12lags*tS*1e6,XC12,'r');
-                plot(td2_Act*1e6,XC12yMax,'b.','MarkerSize',20);
-                plot(td2_Est*1e6,XC12yMax,'k.','MarkerSize',20);
                 hold off;
-                string121 = sprintf('td2_{Act} = %f [us]', td2_Act*1e6);
-                string122 = sprintf('td2_{Est} = %f [us]', td2_Est*1e6);
-                legend({'',string121,string122});
+            subplot(2,2,2);         
+                stem(XC12_Lags*tS*1e6,XC12,'r');
+                hold on;       
+                plot(tD_Act(2)*1e6,0,'b.','MarkerSize',20);
+                plot(tD_Est(2)*1e6,0,'k.','MarkerSize',20);
+                plot(0,0,'w.','MarkerSize',1); 
+                string121 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1e6);
+                string122 = sprintf('td2_{Est} = %f [us]', tD_Est(2)*1e6);
+                string123 = sprintf('\\Delta td2 = %f [us]', ...
+                    (tD_Act(2)-tD_Est(2))*1e6);
+                legend({'',string121,string122,string123});
                 title('XC_{12}');
                 xlabel('Time [\mus]');
-            subplot(2,2,3);
-                hold on;
-                stem(XC13lags*tS*1e6,XC13,'m');
-                plot(td3_Act*1e6,XC13yMax,'b.','MarkerSize',20);
-                plot(td3_Est*1e6,XC13yMax,'k.','MarkerSize',20);
                 hold off;
-                string131 = sprintf('td3_{Act} = %f [us]', td3_Act*1e6);
-                string132 = sprintf('td3_{Est} = %f [us]', td3_Est*1e6);
-                legend({'',string131,string132});
+            subplot(2,2,3);
+                stem(XC13_Lags*tS*1e6,XC13,'m');
+                hold on;
+                plot(tD_Act(3)*1e6,0,'b.','MarkerSize',20);
+                plot(tD_Est(3)*1e6,0,'k.','MarkerSize',20);
+                plot(0,0,'w.','MarkerSize',1);
+                string131 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1e6);
+                string132 = sprintf('td3_{Est} = %f [us]', tD_Est(3)*1e6);
+                string133 = sprintf('\\Delta td3 = %f [us]', ...
+                    (tD_Act(3)-tD_Est(3))*1e6);
+                legend({'',string131,string132,string133});
                 title('XC_{13}');
                 xlabel('Time [\mus]');
-            subplot(2,2,4);
-                hold on;
-                stem(XC14lags*tS*1e6,XC14,'g');
-                plot(td4_Act*1e6,XC14yMax,'b.','MarkerSize',20);
-                plot(td4_Est*1e6,XC14yMax,'k.','MarkerSize',20);
                 hold off;
-                string141 = sprintf('td4_{Act} = %f [us]', td4_Act*1e6);
-                string142 = sprintf('td4_{Est} = %f [us]', td4_Est*1e6);
-                legend({'',string141,string142});
+            subplot(2,2,4);
+                stem(XC14_Lags*tS*1e6,XC14,'g');
+                hold on;
+                plot(tD_Act(4)*1e6,0,'b.','MarkerSize',20);
+                plot(tD_Est(4)*1e6,0,'k.','MarkerSize',20);
+                plot(0,0,'w.','MarkerSize',1);
+                string141 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1e6);
+                string142 = sprintf('td4_{Est} = %f [us]', tD_Est(4)*1e6);
+                string143 = sprintf('\\Delta td4 = %f [us]', ...
+                    (tD_Act(4)-tD_Est(4))*1e6);
+                legend({'',string141,string142,string143});
                 title('XC_{14}');
                 xlabel('Time [\mus]');
+                hold off;
     end
         
     if (fig2_On == true)
-            
-        % Comparint actual and estimated source azimuths
+        
+        stringTrials = sprintf('Trial %0.0f / %0.0f', trialCount, trialTotal);
+        
+        % Compass and source location plots 
         figure(2)
             subplot(2,2,1);
                 compass([0 S_Act(1)],[0 S_Act(2)],'-r');
-                view([90, -90]);
+                hold on;
+                scalarXY = sqrt( S_Act(1)^2 + S_Act(2)^2 ) / ...
+                    sqrt( S_Est(1)^2 + S_Est(2)^2 );
+                compass([0 scalarXY*S_Est(1)],[0 scalarXY*S_Est(2)],'-b');
+                %view([90, -90]);
                 string211 = sprintf('Actual: %0.1f (deg)', azimuthH_Act);
-                title({stringTrials,'Horizontal Azimuth',string211,''});
+                string212 = sprintf('Median Est: %0.1f (deg)', median(azimuthHs));
+                title({stringTrials,'Horizontal Azimuth',string211,string212,''});
+                hold off;
+                
             subplot(2,2,3);
-                compass([0 xS_Est],[0 yS_Est],'-b');
-                view([90, -90]);
-                string241 = sprintf('Estimated: %0.1f (deg)', azimuthH_Est);
-                title({stringTrials,'Horizontal Azimuth',string241,''});
+                compass([0 S_Act(1)],[0 S_Act(3)],'-r');
+                hold on;
+                scalarXZ = sqrt( S_Act(1)^2 + S_Act(3)^2 ) / ...
+                    sqrt( S_Est(1)^2 + S_Est(3)^2 );
+                compass([0 scalarXZ*S_Est(1)],[0 scalarXZ*S_Est(3)],'-b');
+                %view([90, -90]);
+                string221 = sprintf('Actual: %0.1f (deg)', azimuthV_Act);
+                string222 = sprintf('Median Est: %0.1f (deg)', median(azimuthVs));
+                title({stringTrials,'Vertical Azimuth',string221,string222,''});
+                hold off;
                 
             subplot(2,2,2);
-                compass([0 S_Act(1)],[0 S_Act(3)],'-r');
-                view([90, -90]);
-                string221 = sprintf('Actual: %0.1f (deg)', azimuthV_Act);
-                title({stringTrials,'Vertical Azimuth',string221,''});
+                plot(S_Act(1),S_Act(2),'r.','MarkerSize',20);
+                hold on;
+                line([0,S_Act(1)],[0,S_Act(2)],'Color',[1,0,0]);
+                line([0,S_Est(1)],[0,S_Est(2)],'Color',[0,1,0]);
+                grid on;
+                xlim([-100,100]);
+                ylim([-100,100]);
+                hold off;
             subplot(2,2,4);
-                compass([0 xS_Est],[0 zS_Est],'-b');
-                view([90, -90]);
-                string251 = sprintf('Estimated: %0.1f (deg)', azimuthV_Est);
-                title({stringTrials,'Vertical Azimuth',string251,''});
-    end
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    pause(2.00);
+                plot(S_Act(1),S_Act(3),'r.','MarkerSize',20);
+                hold on;
+                line([0,S_Act(1)],[0,S_Act(3)],'Color',[1,0,0]);
+                line([0,S_Est(1)],[0,S_Est(3)],'Color',[0,1,0]);
+                grid on;
+                xlim([-100,100]);
+                ylim([-100,100]);
+                title('XZ Plane');
+                hold off;             
+    end    
+    pause(dwellTime);
 end
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% 100 Trials, 1.8 MHz, D = lambda/4, SNR = 20
+%
+% N0  Trap Err      Simpson Err
+%  6  1.0855e-06    1.0558e-06
+%  7  6.2607e-07    6.8481e-07
+%  8  4.2621e-07    4.6479e-07
+%  9  3.6170e-07    3.7935e-07
+% 10  3.0304e-07    3.2438e-07
+% 11  2.4658e-07    5.9599e-07
+% 12  4.2955e-07    6.7619e-20

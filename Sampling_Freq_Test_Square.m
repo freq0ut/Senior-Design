@@ -10,7 +10,7 @@ clc;
 trialTotal = 1e4;  % Total number of iterations of main loop
 
 % ADC
-fS = 1.8e6;
+fS = 300e3;
 tS = 1/fS;
 
 % Source Properties
@@ -22,7 +22,7 @@ lambda = vP/fSce; % Wavelength [m]
 S_Act = [0;0;0];  % Initialization of source location [x,y,z] in [m]
 
 % Hydrophone Properties
-D = 0.1;          % Hydrophone spacing [m]
+D = lambda;       % Hydrophone spacing [m]
 
 % Azimuths Data
 DATA_Azimuths = zeros(2,trialTotal);
@@ -104,5 +104,5 @@ figure(1)
     hold off;
     
 % 5 degrees
-% D = 0.10,     fS =   1.8e6 EXCELLENT
+% D = 2*lambda, fS =   1.8e6 EXCELLENT
 % D = lambda/3, fS = > 2 GHz

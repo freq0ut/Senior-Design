@@ -65,23 +65,23 @@ dwellTime = 0; % Delay after 1 complete iteration of main loop
 fig1_On = true; % Turn on/off visual containing raw time signals and XCs
 fig2_On = false; % Turn on/off visual containing compass and source grid
 
-% ADC
-fS = 1.8e6; % Sample freq [Hz]
-tS = 1/fS;  % Sample period [s]
-N0 = 2^11;  % Samples per frame
-DATA_RAW =  zeros(4,N0); % Raw data
-DATA_CLEAN = zeros(4,N0); % Cleaned data
-
 % Source Properties
 SNR  = 20;        % Signal to Noise Ratio [dB]
 fSce = 30e3;      % Source freq [Hz]
 tSce = 1/fSce;    % Source period [s]
 vP   = 1482;      % Propagation Velocity [m/s]
 lambda = vP/fSce; % Wavelength [m]
-S_Act = [0;0;0];  % Initialization of source location
+Sce_Max_Dist = 20;
+
+% ADC
+fS = 300e3; % Sample freq [Hz]
+tS = 1/fS;  % Sample period [s]
+N0 = 2^13;  % Samples per frame
+DATA_RAW =  zeros(4,N0); % Raw data
+DATA_CLEAN = zeros(4,N0); % Cleaned data
 
 % Hydrophone Properties
-D = 0.1; % Hydrophone spacing [m]
+D = lambda; % Hydrophone spacing [m]
 FAST_XCORR_i = ceil(sqrt(2)*D/vP/tS); % FAST_XCORR indices
 tD_Act = [0;0;0;0]; % Actual time delays
 tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
@@ -93,9 +93,9 @@ tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
     % Simulating a source moving in the water.
-    S_Act(1) = -0.1;
-    S_Act(2) = -0.1;
-    S_Act(3) = -0.1;
+    S_Act(1) = Sce_Max_Dist;%*(2*rand()-1);
+    S_Act(2) = Sce_Max_Dist;%*(2*rand()-1);
+    S_Act(3) = Sce_Max_Dist;%*(2*rand()-1);
 
     % Calculating actual azimuths to source
     azimuthH_Act = wrapTo2Pi(atan2(S_Act(2),S_Act(1))) * (180/pi);
@@ -116,10 +116,10 @@ for trialCount = 1:trialTotal;
     t = 0:tS:(N0-1)*tS;
     
     % Calculating random DC offsets
-    DC_Offset(1) = 2*(2*rand()-1);
-    DC_Offset(2) = 2*(2*rand()-1);
-    DC_Offset(3) = 2*(2*rand()-1);
-    DC_Offset(4) = 2*(2*rand()-1);
+    DC_Offset(1) =  8;
+    DC_Offset(2) =  6;
+    DC_Offset(3) =  4;
+    DC_Offset(4) =  2;
     
     % Constructing the input signals from the time delays and DC offsets
     DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fSce*(t+tD_Act(1))); % Channel 1 (reference)
@@ -170,11 +170,11 @@ for trialCount = 1:trialTotal;
     MPH = 0.8*1.3;
     [pks, peakLocs] = findpeaks(abs(DATA_CLEAN(1,:)),'MinPeakDistance',MPD,'MinPeakHeight',MPH);
     
-    figure(99);
-        plot(t,DATA_CLEAN(1,:));
-        hold on;
-        stem(peakLocs,pks,'-r');
-        hold off;
+%     figure(99);
+%         plot(t,DATA_CLEAN(1,:));
+%         hold on;
+%         stem(peakLocs,pks,'-r');
+%         hold off;
     
     % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = FAST_XCORR( DATA_CLEAN(1,:), DATA_CLEAN(2,:), FAST_XCORR_i );
