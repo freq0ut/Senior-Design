@@ -8,12 +8,12 @@ function [yMax, xMax] = MAXIMUM(X,Y)
     
     yMax = 0;
     
-    for i=1:length(X);
-       yTest = Y(i);
+    for x=1:length(X);
+       yTest = Y(x);
        
        if (yTest>yMax)
            yMax = yTest;
-           xMax = i;
+           xMax = x;
        end
     end
 end

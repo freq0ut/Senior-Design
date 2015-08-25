@@ -1,4 +1,4 @@
-function [yMax, xMax] = FAST_MAXIMUM(X,Y,i1,i2)
+function [yMax, xMax] = FAST_MAXIMUM(X,Y,x1,x2)
     % This function calculates the maximum Y value (yMax) and its
     % corresponding X location (xMax).
     
@@ -8,12 +8,12 @@ function [yMax, xMax] = FAST_MAXIMUM(X,Y,i1,i2)
     
     yMax = 0;
     
-    for i=i1:i2;
-       yTest = Y(i);
+    for x=x1:x2;
+       yTest = Y(x);
        
        if (yTest>yMax)
            yMax = yTest;
-           xMax = i;
+           xMax = x;
        end
     end
 end
