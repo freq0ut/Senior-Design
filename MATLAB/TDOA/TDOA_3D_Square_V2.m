@@ -17,7 +17,7 @@
 %   Sensor layout
 %   -------------------------------
 %   |                             |
-%   |                     S       |
+%   |                     P       |
 %   |                             |
 %   |     4       1               |
 %   |                             |
@@ -337,5 +337,7 @@ for trialCount = 1:trialTotal;
                 title('XZ Plane');
                 hold off;              
     end
+    
     pause(dwellTime);
+    
 end

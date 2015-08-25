@@ -17,7 +17,7 @@
 %   Sensor layout
 %   -------------------------------
 %   |                             |
-%   |                     S       |
+%   |                     P       |
 %   |                             |
 %   |     4       1               |
 %   |                             |
@@ -86,8 +86,8 @@ D = lambda/3;    % Hydrophone spacing [m]
 
 % ADC
 fADC = 1.8e6;  % Sample freq [Hz]
-tADC = 1/fADC;   % Sample period [s]
-N0 = 2^11;   % Samples per frame
+tADC = 1/fADC; % Sample period [s]
+N0 = 2^11;     % Samples per frame
 
 % Microcontroller Properties
 azimuthHs = zeros(1,10);  % Median horizontal azimuth array
@@ -178,6 +178,10 @@ for trialCount = 1:trialTotal;
         chan = chan+1;
     end   
 
+    MPD = 0.90*tPing;
+    MPH = 0.8*1.3;
+    [pks, peakLocs] = findpeaks(abs(DATA_CLEAN(1,:)),'MinPeakDistance',MPD,'MinPeakHeight',MPH);
+    
     % Determining the estimated time delays using Trapezoidal Rule
     [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i );
     [~,x] = MAXIMUM(XC12_Lags,XC12);
@@ -227,17 +231,17 @@ for trialCount = 1:trialTotal;
         % Raw time signal plots and XCs
         figure(1)
             subplot(2,2,1);
-                stem(t*1e6,DATA_RAW(1,:),'-b');
+                plot(t*1e6,DATA_RAW(1,:),'-b');
                 hold on;
-                stem(t*1e6,DATA_RAW(2,:),'-r');
-                stem(t*1e6,DATA_RAW(3,:),'-m');
-                stem(t*1e6,DATA_RAW(4,:),'-g');
+                plot(t*1e6,DATA_RAW(2,:),'-r');
+                plot(t*1e6,DATA_RAW(3,:),'-m');
+                plot(t*1e6,DATA_RAW(4,:),'-g');
                 xlabel('Time [\mus]');
                 ylabel('Amplitude');
                 legend({'Chan1','Chan2','Chan3','Chan4'});
-                string1 = sprintf('f_{samp} = %0.2f [MHz]', fADC/1e6);
-                string2 = sprintf('SNR = %0.0f [dB]', SNR);
-                title({string1,string2});
+                string111 = sprintf('f_{samp} = %0.2f [MHz]', fADC/1e6);
+                string112 = sprintf('SNR = %0.0f [dB]', SNR);
+                title({string111,string112});
                 hold off;
             subplot(2,2,2);         
                 stem(XC12_Lags*tADC*1e6,XC12,'r');
@@ -245,11 +249,11 @@ for trialCount = 1:trialTotal;
                 plot(tD_Act(2)*1e6,0,'b.','MarkerSize',20);
                 plot(tD_Est(2)*1e6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1); 
-                string3 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1e6);
-                string4 = sprintf('td2_{Est} = %f [us]', tD_Est(2)*1e6);
-                string5 = sprintf('\\Delta td2 = %f [us]', ...
+                string121 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1e6);
+                string122 = sprintf('td2_{Est} = %f [us]', tD_Est(2)*1e6);
+                string123 = sprintf('\\Delta td2 = %f [us]', ...
                     (tD_Act(2)-tD_Est(2))*1e6);
-                legend({'',string3,string4,string5});
+                legend({'',string121,string122,string123});
                 title('XC_{12}');
                 xlabel('Time [\mus]');
                 hold off;
@@ -259,11 +263,11 @@ for trialCount = 1:trialTotal;
                 plot(tD_Act(3)*1e6,0,'b.','MarkerSize',20);
                 plot(tD_Est(3)*1e6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1);
-                string6 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1e6);
-                string7 = sprintf('td3_{Est} = %f [us]', tD_Est(3)*1e6);
-                string8 = sprintf('\\Delta td3 = %f [us]', ...
+                string131 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1e6);
+                string132 = sprintf('td3_{Est} = %f [us]', tD_Est(3)*1e6);
+                string133 = sprintf('\\Delta td3 = %f [us]', ...
                     (tD_Act(3)-tD_Est(3))*1e6);
-                legend({'',string6,string7,string8});
+                legend({'',string131,string132,string133});
                 title('XC_{13}');
                 xlabel('Time [\mus]');
                 hold off;
@@ -273,11 +277,11 @@ for trialCount = 1:trialTotal;
                 plot(tD_Act(4)*1e6,0,'b.','MarkerSize',20);
                 plot(tD_Est(4)*1e6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1);
-                string9 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1e6);
-                string10 = sprintf('td4_{Est} = %f [us]', tD_Est(4)*1e6);
-                string11 = sprintf('\\Delta td4 = %f [us]', ...
+                string141 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1e6);
+                string142 = sprintf('td4_{Est} = %f [us]', tD_Est(4)*1e6);
+                string143 = sprintf('\\Delta td4 = %f [us]', ...
                     (tD_Act(4)-tD_Est(4))*1e6);
-                legend({'',string9,string10,string11});
+                legend({'',string141,string142,string143});
                 title('XC_{14}');
                 xlabel('Time [\mus]');
                 hold off;
@@ -296,9 +300,9 @@ for trialCount = 1:trialTotal;
                     sqrt( Ping_Est(1)^2 + Ping_Est(2)^2 );
                 compass([0 scalarXY*Ping_Est(1)],[0 scalarXY*Ping_Est(2)],'-b');
                 %view([90, -90]);
-                string1 = sprintf('Actual: %0.1f (deg)', azimuthH_Act);
-                string2 = sprintf('Estimated: %0.1f (deg)', azimuthH_Est);
-                title({stringTrials,'Horizontal Azimuth',string1,string2,''});
+                string211 = sprintf('Actual: %0.1f (deg)', azimuthH_Act);
+                string212 = sprintf('Estimated: %0.1f (deg)', azimuthH_Est);
+                title({stringTrials,'Horizontal Azimuth',string211,string212,''});
                 hold off;
                 
             subplot(2,2,3);
@@ -308,9 +312,9 @@ for trialCount = 1:trialTotal;
                     sqrt( Ping_Est(1)^2 + Ping_Est(3)^2 );
                 compass([0 scalarXZ*Ping_Est(1)],[0 scalarXZ*Ping_Est(3)],'-b');
                 %view([90, -90]);
-                string3 = sprintf('Actual: %0.1f (deg)', azimuthV_Act);
-                string4 = sprintf('Estimated: %0.1f (deg)', azimuthV_Est);
-                title({stringTrials,'Vertical Azimuth',string3,string4,''});
+                string221 = sprintf('Actual: %0.1f (deg)', azimuthV_Act);
+                string222 = sprintf('Estimated: %0.1f (deg)', azimuthV_Est);
+                title({stringTrials,'Vertical Azimuth',string221,string222,''});
                 hold off;
                 
             subplot(2,2,2);
@@ -333,5 +337,7 @@ for trialCount = 1:trialTotal;
                 title('XZ Plane');
                 hold off;              
     end
+    
     pause(dwellTime);
+    
 end

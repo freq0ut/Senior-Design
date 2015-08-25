@@ -318,6 +318,8 @@ for trialCount = 1:trialTotal;
                 ylim([-pingMaxDist,pingMaxDist]);
                 title('XZ Plane');
                 hold off;             
-    end    
+    end
+    
     pause(dwellTime);
+    
 end
