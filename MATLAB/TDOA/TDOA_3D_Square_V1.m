@@ -1,11 +1,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author:  Joshua Simmons
-% Started: July, 2015
-% Status:  Completed
+% Started: August, 2015
+% Status:  Incomplete
 %
 % Description:
 %
-% PINGER ASSUMED TO ALWAYS BE ON!
+% PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!
 %
 % Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a
 % 30 kHz SINE wave underwater.
@@ -15,16 +15,16 @@
 % plane.
 %
 %   Sensor layout
-%   -------------------------------
-%   |                             |
-%   |                     P       |
-%   |                             |
-%   |     4       1               |
-%   |                             |
-%   |                             |
-%   |     3       2               |
-%   |                             |
-%   -------------------------------
+%
+%         (Top View)
+%   ---------------------
+%   |                   |
+%   |     4       1     |
+%   |                   |
+%   |                   |
+%   |     3       2     |
+%   |                   |
+%   ---------------------
 %
 % Coordinates
 %   c1 = ( 0, 0,0)
@@ -63,14 +63,14 @@ clc;
 
 addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 10; % Total number of iterations of main loop
+trialTotal = 1; % Total number of iterations of main loop
 dwellTime = 0;   % Delay after 1 complete iteration of main loop
-fig1_On = false; % Turn on/off visual containing raw time signals and XCs
+fig1_On = true; % Turn on/off visual containing raw time signals and XCs
 fig2_On = true;  % Turn on/off visual containing compass and source grid
 
 % Pinger Properties
@@ -90,36 +90,40 @@ tADC = 1/fADC; % Sample period [s]
 N0 = 2^11;     % Samples per frame
 
 % Microcontroller Properties
-azimuthHs = zeros(1,10);  % Median horizontal azimuth array
-azimuthVs = zeros(1,10);  % Median vertical azimuth array
-DATA_RAW  = zeros(4,N0);  % Raw data
+azimuthHs  = zeros(1,10); % Median horizontal azimuth array
+azimuthVs  = zeros(1,10); % Median vertical azimuth array
+DATA_RAW   = zeros(4,N0); % Raw data
 DATA_CLEAN = zeros(4,N0); % Cleaned data
 tD_Act = [0;0;0;0]; % Actual time delays
 tD_Est = [0;0;0;0]; % Estimated time delays (Trapezoidal Rule)
-XCORR2i = ceil(D/(vP*tADC)); % XCORR2 indices
+XCORR2i = ceil(sqrt(2)*D/(vP*tADC)); % XCORR2 indices
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%% CONTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONSTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % START MAIN LOOP
 for trialCount = 1:trialTotal;
-    % Pinger location (xP,yP,zP)
+    
+    % Actual pinger location (xP,yP,zP)
     Ping_Act(1) = pingMaxDist*(2*rand()-1);
     Ping_Act(2) = pingMaxDist*(2*rand()-1);
     Ping_Act(3) = pingMaxDist*(2*rand()-1);
 
-    % Calculating actual azimuths to source
+    % Actual azimuth to pinger
     azimuthH_Act = wrapTo2Pi(atan2(Ping_Act(2),Ping_Act(1))) * (180/pi);
     azimuthV_Act = wrapTo2Pi(atan2(Ping_Act(3),Ping_Act(1))) * (180/pi);
     
-    % Determining the actual time delays    
+    % Actual sphere radii
     R_Act(1) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)  )^2 );
     R_Act(2) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)+D)^2 + (Ping_Act(3)  )^2 );
     R_Act(3) = sqrt( (Ping_Act(1)+D)^2 + (Ping_Act(2)+D)^2 + (Ping_Act(3)  )^2 );
     R_Act(4) = sqrt( (Ping_Act(1)+D)^2 + (Ping_Act(2)  )^2 + (Ping_Act(3)  )^2 );
     
+    % Actual Time-Of-Arrival
     TOA_Act = R_Act(1)/vP;
+
+    % Actual time delays
     tD_Act(2) = (R_Act(2)-R_Act(1)) / vP;
     tD_Act(3) = (R_Act(3)-R_Act(1)) / vP;
     tD_Act(4) = (R_Act(4)-R_Act(1)) / vP;
@@ -127,19 +131,19 @@ for trialCount = 1:trialTotal;
     % Time array [s]
     t = 0:tADC:(N0-1)*tADC;
     
-    % Calculating random DC offsets
+    % DC Offsets
     DC_Offset(1) =  8;
     DC_Offset(2) =  6;
     DC_Offset(3) =  4;
     DC_Offset(4) =  2;
     
-    % Constructing the input signals from the time delays and DC offsets
+    % Incorporating DC offsets and time delays
     DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1))); % Channel 1 (reference)
     DATA_RAW(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2))); % Channel 2
     DATA_RAW(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3))); % Channel 3
     DATA_RAW(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
     
-    % Adding TOA to the input signals
+    % Incorporating TOA
     chan = 1;
     while (chan <= 4)
         for i=1:N0;
@@ -162,56 +166,52 @@ for trialCount = 1:trialTotal;
     % Adding White Gaussian Noise
     DATA_RAW = awgn(DATA_RAW,SNR);
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % Removing DC Offsets    
     chan = 1;
     while (chan <= 4)
         DC_Offset = AVERAGE(t,DATA_RAW(chan,:));
-        
+
         for i=1:N0;
             DATA_CLEAN(chan,i) = DATA_RAW(chan,i) - DC_Offset;        
         end
-        
-        chan = chan+1;
-    end   
 
-    MPD = 0.90*tPing;
-    MPH = 0.8*1.3;
-    [pks, peakLocs] = findpeaks(abs(DATA_CLEAN(1,:)),'MinPeakDistance',MPD,'MinPeakHeight',MPH);
+        chan = chan+1;
+    end
     
-    % Determining the estimated time delays using Trapezoidal Rule
+    % Estimated time delays (Trapezoidal Rule)
     [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i );
     [~,x] = MAXIMUM(XC12_Lags,XC12);
     tD_Est(2) = XC12_Lags(x)*tADC;
-    
+
     [XC13, XC13_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(3,:), XCORR2i );
     [~,x] = MAXIMUM(XC13_Lags,XC13);
     tD_Est(3) = XC13_Lags(x)*tADC;
-    
+
     [XC14, XC14_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(4,:), XCORR2i );
     [~,x] = MAXIMUM(XC14_Lags,XC14);
     tD_Est(4) = XC14_Lags(x)*tADC;
-    
-    % Calculating the estimated Time-Of-Arrival
+
+    % Estimated Time-Of-Arrival
     TOA_Est = (tD_Est(3)^2-tD_Est(2)^2-tD_Est(4)^2) / ...
         (2*(tD_Est(2)-tD_Est(3)+tD_Est(4)));
     
-    % Calculating estimated sphere radii
+    % Estimated sphere radii
     R_Est(1) = vP*(TOA_Est);
     R_Est(2) = vP*(TOA_Est+tD_Est(2));
     R_Est(3) = vP*(TOA_Est+tD_Est(3));
     R_Est(4) = vP*(TOA_Est+tD_Est(4));
     
-    % Determining the estimated source location
+    % Estimated pinger location (xP,yP,zP)
     Ping_Est(1) = (R_Est(4)^2-R_Est(1)^2-D^2)/(2*D);
     Ping_Est(2) = (R_Est(2)^2-R_Est(1)^2-D^2)/(2*D);
     Ping_Est(3)  = sqrt(R_Est(1)^2-Ping_Est(1)^2-Ping_Est(2)^2);
     Ping_Est(4)  = -Ping_Est(3);
     
-    % Calculating estimated azimuths to source
+    % Estimated azimuths to pinger
     if ( isreal(Ping_Est(1)) && isreal(Ping_Est(2)) && isreal(Ping_Est(3)) )
         azimuthH_Est = wrapTo2Pi(atan2(Ping_Est(2),Ping_Est(1))) * (180/pi);
         azimuthV_Est = wrapTo2Pi(atan2(Ping_Est(3),Ping_Est(1))) * (180/pi);
@@ -222,10 +222,14 @@ for trialCount = 1:trialTotal;
         Ping_Est(2) = -1;
         Ping_Est(3) = -1;    
     end
+
+    % Running Medians
+    azimuthHs(mod(trialCount,10)+1) = azimuthH_Est;
+    azimuthVs(mod(trialCount,10)+1) = azimuthV_Est;
     
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     if (fig1_On == true)
         % Raw time signal plots and XCs

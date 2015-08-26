@@ -6,7 +6,7 @@ function [XC, XC_Lags] = XCORR(Y1,Y2)
         error('Y1 and Y2 are not the same length');
     end
     
-    N0 = length(Y1);
+    N0  = length(Y1);
     X = 1:N0; % X array for TRAPZ to integrate properly
     XC = zeros(1,2*N0-1);
     XC_Lags = zeros(1,2*N0-1);    

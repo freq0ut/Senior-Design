@@ -63,7 +63,8 @@ for trialCount = 1:trialTotal;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Constructing estimated time delays
-    error = tADC;
+    %error = tADC;
+    error = 2.09964516617352e-07;
     
     for i=2:4;
         tD_Est(i) = tD_Act(i) + (2*rand()-1) * error;

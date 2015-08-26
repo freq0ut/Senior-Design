@@ -1,0 +1,27 @@
+function [XC, XC_Lags] = XCORR2(Y1,Y2,i)
+    % ***INCOMPLETE*** Have a zero at zero
+    % This function calculates cross-correlation.
+    
+    if length(Y1) ~= length(Y2);
+        error('Y1 and Y2 are not the same length');
+    end
+
+    N0 = length(Y1);
+    X = 1:2*i; % X array for TRAPZ to integrate properly
+    XC = zeros(1,2*i);
+    XC_Lags = zeros(1,2*i);    
+    Y2 = padarray(Y2,[0,i],0,'both'); % Y2 is padded with zeros on
+                                      % both sides by a factor i.
+    Y2s = zeros(1,2*i); % Smaller Y2 array that will be shifted continuously.
+    Y1 = Y1(N0/2-i:N0/2+i-1); % The length of Y1 is matched to that of X
+
+    for tau = -i:i;
+        for shift = 1:2*i; % Shifting the smaller Y2 array
+           Y2s(shift) = Y2(shift-tau+2*i);
+        end
+        
+        A = TRAPZ(X,Y1.*Y2s);
+        XC(2*i+tau) = A;
+        XC_Lags(2*i+tau) = tau;
+    end
+end

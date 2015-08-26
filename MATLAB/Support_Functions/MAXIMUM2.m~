@@ -7,7 +7,6 @@ function [yMax, xMax] = MAXIMUM2(X,Y,x1,x2)
         error('X and Y are not the same length');
     end
     
-    xMax = 0;
     yMax = 0;
     
     for x=x1:x2;
