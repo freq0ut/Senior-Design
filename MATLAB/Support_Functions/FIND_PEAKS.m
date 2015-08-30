@@ -1,4 +1,4 @@
-function [pks, pkLocs] = PEAKS_FINDER(Y,MPD,xNBRS)
+function [pks, pkLocs] = FIND_PEAKS(Y,MPD,xNBRS)
     % ***INCOMPLETE***
     % This function finds local maxima in specified zones.
     %
@@ -17,29 +17,29 @@ function [pks, pkLocs] = PEAKS_FINDER(Y,MPD,xNBRS)
     pkCount = 2;
 
     % Looking to the right of xMax
-    x  = xMax+MPD-1;
-    x2 = x+xNBRS;
+    x1  = xMax+MPD-1;
+    x2 = x1+xNBRS;
     while x2 < length(Y)-1;
-        [yMax, xMaxLocal] = MAXIMUM2(X,Y,x,x2);
+        [yMax, xMaxLocal] = MAXIMUM2(X,Y,x1,x2);
         pkLocs(1,pkCount) = xMaxLocal;
         pks(1,pkCount) = yMax;
         pkCount = pkCount+1;
-        x  = x2+MPD-1;
-        x2 = x+xNBRS;
+        x1  = x2+MPD-1;
+        x2 = x1+xNBRS;
     end
        
     % Looking to the left of xMax
     x2 = xMax-MPD+1;
-    x  = x2-xNBRS;
-    while x > 0;
-        [yMax, xMaxLocal] = MAXIMUM2(X,Y,x,x2);
+    x1  = x2-xNBRS;
+    while x1 > 0;
+        [yMax, xMaxLocal] = MAXIMUM2(X,Y,x1,x2);
         pkLocs(1,pkCount) = xMaxLocal;
         pks(1,pkCount) = yMax;
         pkCount = pkCount+1;
-        x2 = x-MPD+1;
-        x  = x2-xNBRS;
+        x2 = x1-MPD+1;
+        x1 = x2-xNBRS;
     end
     
     % Sorting results from smallest to largest index
-    [pkLocs,pks] = BUBBLE_SORT(pkLocs,pks)
+    [pkLocs,pks] = BUBBLE_SORT(pkLocs,pks);
 end

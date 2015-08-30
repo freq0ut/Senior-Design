@@ -13,7 +13,7 @@ function [XC, XC_Lags] = XCORR2(Y1,Y2,iBound)
     Y2 = padarray(Y2,[0,N0],0,'both'); % Y2 is padded with zeros on
                                        % both sides TRIPLING its size.
     Y2s = zeros(1,N0); % Smaller Y2 array that will be shifted continuously.
-    
+
     for tau = -iBound:iBound;
         for shift = 1:N0; % Shifting the smaller Y2 array
            Y2s(shift) = Y2(shift-tau+N0);

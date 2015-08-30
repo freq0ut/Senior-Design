@@ -215,21 +215,21 @@ for trialCount = 1:trialTotal;
 
     % Secondary estimated time delays (Trapezoidal Rule)
     [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i );
-    [~,pkLocs12] = PEAKS_FINDER(XC12(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
+    [~,pkLocs12] = FIND_PEAKS(XC12(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
 
     for i=1:length(pkLocs12);
         tD_EstS(2,i) = XC12_Lags(pkLocs12(i)+N0-XCORR2i-1)*tADC;
     end
 
     [XC13, XC13_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(3,:), XCORR2i );
-    [~,pkLocs13] = PEAKS_FINDER(XC13(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
+    [~,pkLocs13] = FIND_PEAKS(XC13(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
 
     for i=1:length(pkLocs13);
         tD_EstS(3,i) = XC13_Lags(pkLocs13(i)+N0-XCORR2i-1)*tADC;
     end
     
     [XC14, XC14_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(4,:), XCORR2i );
-    [~,pkLocs14] = PEAKS_FINDER(XC14(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
+    [~,pkLocs14] = FIND_PEAKS(XC14(N0-XCORR2i:N0+XCORR2i),MPD,xNBRS);
 
     for i=1:length(pkLocs14);
         tD_EstS(4,i) = XC14_Lags(pkLocs14(i)+N0-XCORR2i-1)*tADC;
