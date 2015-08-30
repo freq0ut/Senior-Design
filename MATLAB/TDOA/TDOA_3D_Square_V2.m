@@ -68,44 +68,44 @@ addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Supp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1e3;     % Total number of iterations of main loop
+trialTotal = 1E+2;    % Total number of iterations of main loop
 dwellTime = 0;        % Delay after 1 complete iteration of main loop
 fig1_On = true;       % Turn on/off visual containing raw time signals and XCs
-fig2_On = true;      % Turn on/off visual containing compass and source grid
+fig2_On = true;       % Turn on/off visual containing compass and source grid
 OS_dwellTime = false; % Gives you time to make to go full screen at the start
                       % of the simulation haha!
 
 % Pinger Properties
 SNR  = 20;         % Signal to Noise Ratio [dB]
-fPing = 30e3;      % Source freq [Hz]
+fPing = 30E+3;     % Source freq [Hz]
 tPing = 1/fPing;   % Source period [s]
-vP   = 1482;       % Propagation Velocity [m/s]
+vP = 1482;         % Propagation Velocity [m/s]
 lambda = vP/fPing; % Wavelength [m]
-pingMaxDist = 0.5;  % Pinger max distance from sensors [m]
+pingMaxDist = 0.5; % Pinger max distance from sensors [m]
 
 % Hydrophone Properties
-D = lambda;    % Hydrophone spacing [m]
+D = lambda; % Hydrophone spacing [m]
 
 % ADC
-fADC = 1.8e6;  % Sample freq [Hz]
-tADC = 1/fADC; % Sample period [s]
-N0 = 2^10;     % Samples per frame
+fADC = 1800E+3; % Sample freq [Hz]
+tADC = 1/fADC;  % Sample period [s]
+N0 = 2^10;      % Samples per frame
 
 % Microcontroller Properties
 azimuthH_Est = 0; % Single horizontal azimuth estimate
 azimuthV_Est = 0; % Single vertical azimuth estimate
-azimuthHs  = zeros(1,10); % Median horizontal azimuth array
-azimuthVs  = zeros(1,10); % Median vertical azimuth array
+azimuthHs = zeros(1,10); % Median horizontal azimuth array
+azimuthVs = zeros(1,10); % Median vertical azimuth array
 DATA_RAW   = zeros(4,N0); % Raw data
 DATA_CLEAN = zeros(4,N0); % Cleaned data
-tD_Act = [0;0;0;0];  % Actual time delays
+tD_Act  = [0;0;0;0]; % Actual time delays
 tD_EstP = [0;0;0;0]; % Primary estimated time delays
-tD_EstS = zeros(4,ceil(2*D/lambda));  % Secondary estimated time delays
+tD_EstS = zeros(4,ceil(2*D/lambda)); % Secondary estimated time delays
 TOA_Est = zeros(1,4); % Estimated Time-Of-Arrivals
 XCORR2i = ceil(sqrt(2)*D/(vP*tADC)); % XCORR2 indices
-MPD = 60;   % Minimum Peak Distance
+MPD = 60;  % Minimum Peak Distance
 xNBRS = 2; % Neighbors to look to the left and right of
-THD = 0.8;  % Threshold
+THD = 0.8; % Threshold
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONSTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -116,9 +116,9 @@ for trialCount = 1:trialTotal;
     
     % Actual pinger location (xP,yP,zP)
     if ( mod(trialCount,20) == 1) 
-        Ping_Act(1) =  pingMaxDist*(2*rand()-1);
-        Ping_Act(2) =  pingMaxDist*(2*rand()-1);
-        Ping_Act(3) =  pingMaxDist*(2*rand()-1);
+        Ping_Act(1) =  (2*rand()-1)*(pingMaxDist-D) + D;
+        Ping_Act(2) =  (2*rand()-1)*(pingMaxDist-D) + D;
+        Ping_Act(3) =  (2*rand()-1)*(pingMaxDist-D) + D;
     end
     
     % Actual azimuth to pinger
@@ -139,10 +139,6 @@ for trialCount = 1:trialTotal;
     tD_Act(3) = (R_Act(3)-R_Act(1)) / vP;
     tD_Act(4) = (R_Act(4)-R_Act(1)) / vP;
     
-%     % FOR TESTING PURPOSES
-%     TOA_Act2 = (tD_Act(3)^2-tD_Act(2)^2-tD_Act(4)^2) / ...
-%         (2*(tD_Act(2)-tD_Act(3)+tD_Act(4)));
-    
     % Time array [s]
     t = 0:tADC:(N0-1)*tADC;
     
@@ -153,7 +149,7 @@ for trialCount = 1:trialTotal;
     DC_Offset(4) =  2;
     
     % Incorporating DC offsets and time delays
-    DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1))); % Channel 1 (reference)
+    DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1))); % Channel 1
     DATA_RAW(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2))); % Channel 2
     DATA_RAW(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3))); % Channel 3
     DATA_RAW(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
@@ -281,26 +277,26 @@ for trialCount = 1:trialTotal;
         % Raw time signal plots and XCs
         figure(1)
             subplot(2,2,1);
-                plot(t*1e6,DATA_RAW(1,:),'-b');
+                plot(t*1E+6,DATA_RAW(1,:),'-b');
                 hold on;
-                plot(t*1e6,DATA_RAW(2,:),'-r');
-                plot(t*1e6,DATA_RAW(3,:),'-m');
-                plot(t*1e6,DATA_RAW(4,:),'-g');
+                plot(t*1E+6,DATA_RAW(2,:),'-r');
+                plot(t*1E+6,DATA_RAW(3,:),'-m');
+                plot(t*1E+6,DATA_RAW(4,:),'-g');
                 xlabel('Time [\mus]');
                 ylabel('Amplitude');
                 legend({'Chan1','Chan2','Chan3','Chan4'});
-                string111 = sprintf('f_{samp} = %0.2f [MHz]', fADC/1e6);
+                string111 = sprintf('f_{samp} = %0.2f [MHz]', fADC/1E+6);
                 string112 = sprintf('SNR = %0.0f [dB]', SNR);
                 title({string111,string112});
                 hold off;
             subplot(2,2,2);         
-                stem(XC12_Lags*tADC*1e6,XC12,'r');
+                stem(XC12_Lags*tADC*1E+6,XC12,'r');
                 hold on;       
-                plot(tD_Act(2)*1e6,0,'b.','MarkerSize',20);
-                plot(tD_Est2*1e6,0,'k.','MarkerSize',20);
+                plot(tD_Act(2)*1E+6,0,'b.','MarkerSize',20);
+                plot(tD_Est2*1E+6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1); 
-                string121 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1e6);
-                string122 = sprintf('td2_{Est} = %f [us]', tD_Est2*1e6);
+                string121 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1E+6);
+                string122 = sprintf('td2_{Est} = %f [us]', tD_Est2*1E+6);
                 string123 = sprintf('\\Delta td2 = %f [us]', ...
                     (tD_Act(2)-tD_Est2)*1e6);
                 legend({'',string121,string122,string123});
@@ -308,29 +304,29 @@ for trialCount = 1:trialTotal;
                 xlabel('Time [\mus]');
                 hold off;
             subplot(2,2,3);
-                stem(XC13_Lags*tADC*1e6,XC13,'m');
+                stem(XC13_Lags*tADC*1E+6,XC13,'m');
                 hold on;
-                plot(tD_Act(3)*1e6,0,'b.','MarkerSize',20);
-                plot(tD_Est3*1e6,0,'k.','MarkerSize',20);
+                plot(tD_Act(3)*1E+6,0,'b.','MarkerSize',20);
+                plot(tD_Est3*1E+6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1);
-                string131 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1e6);
-                string132 = sprintf('td3_{Est} = %f [us]', tD_Est3*1e6);
+                string131 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1E+6);
+                string132 = sprintf('td3_{Est} = %f [us]', tD_Est3*1E+6);
                 string133 = sprintf('\\Delta td3 = %f [us]', ...
-                    (tD_Act(3)-tD_Est3)*1e6);
+                    (tD_Act(3)-tD_Est3)*1E+6);
                 legend({'',string131,string132,string133});
                 title('XC_{13}');
                 xlabel('Time [\mus]');
                 hold off;
             subplot(2,2,4);
-                stem(XC14_Lags*tADC*1e6,XC14,'g');
+                stem(XC14_Lags*tADC*1E+6,XC14,'g');
                 hold on;
-                plot(tD_Act(4)*1e6,0,'b.','MarkerSize',20);
-                plot(tD_Est4*1e6,0,'k.','MarkerSize',20);
+                plot(tD_Act(4)*1E+6,0,'b.','MarkerSize',20);
+                plot(tD_Est4*1E+6,0,'k.','MarkerSize',20);
                 plot(0,0,'w.','MarkerSize',1);
-                string141 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1e6);
-                string142 = sprintf('td4_{Est} = %f [us]', tD_Est4*1e6);
+                string141 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1E+6);
+                string142 = sprintf('td4_{Est} = %f [us]', tD_Est4*1E+6);
                 string143 = sprintf('\\Delta td4 = %f [us]', ...
-                    (tD_Act(4)-tD_Est4)*1e6);
+                    (tD_Act(4)-tD_Est4)*1E+6);
                 legend({'',string141,string142,string143});
                 title('XC_{14}');
                 xlabel('Time [\mus]');
