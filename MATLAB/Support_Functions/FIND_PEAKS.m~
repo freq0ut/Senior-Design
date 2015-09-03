@@ -9,8 +9,6 @@ function [pks, pkLocs] = FIND_PEAKS(Y,THD,MPD,xNBRS)
     % xNBRS = neighbors.
     % This is a zone to the left & right of local yMaxs
     % the algorithm searches in to find other local yMaxs.
-    %
-    % When X starts at zero, pkLocs is off by 1
     
     if (xNBRS < 1)
         error('xNBRS must be at least 1.');

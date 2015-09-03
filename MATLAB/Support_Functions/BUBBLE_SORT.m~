@@ -9,9 +9,9 @@ function [Y,X] = BUBBLE_SORT(Y,X)
 
     lastEntry = length(Y);
 
-    while ( lastEntry > 0 )
+    while ( lastEntry > 1 )
 
-        for i=1:lastEntry-1;
+        for i=1:lastEntry;
 
             if ( Y(i) > Y(i+1) )
                 temp = Y(i+1);

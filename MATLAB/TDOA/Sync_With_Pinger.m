@@ -35,27 +35,24 @@ lambda = vP/fPing; % Wavelength [m]
 % ADC
 fADC = 300E+3; % Sample freq [Hz]
 tADC = 1/fADC;  % Sample period [s]
-N0 = 2^10;      % Samples per frame
+N0 = 2^9;      % Samples per frame
 
 % Microcontroller Properties
-MPD = 60;  % Minimum Peak Distance
-xNBRS = 2; % Neighbors to look to the left and right of
+MPD = 1;  % Minimum Peak Distance
+xNBRS = 1; % Neighbors to look to the left and right of
 THD = 0.5; % Threshold
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONSTRUCTING TEST SIGNAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-t = 0:tADC:(N0-1)*tADC;
+t = tADC:tADC:(N0)*tADC;    % Making time start at zero threw off pkLocs by 1
 y = cos(2*pi*fPing*t);
 
-iStart = round(N0*rand() - fADC/PRF);
+iGap = round(fADC/PRF);
+iStart = round((N0-iGap)*rand());
 
-if iStart <= 0
-    iStart = 1;
-end
-
-for i = iStart:iStart+round(fADC/PRF);
+for i = iStart:iStart+iGap;
     y(i) = 0;
 end
 
@@ -65,15 +62,28 @@ y = awgn(y,SNR);
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% ESTIMATING PRF PERIOD %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-[pks, pkLocs] = FIND_PEAKS(y,MPD,xNBRS);
+[pks, pkLocs] = FIND_PEAKS(abs(y),THD,MPD,xNBRS);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figure(1);
-    stem(t,abs(y));
-    grid on;
-    xlabel('Time [us]');
-    ylabel('Aplitude [V]');
-
+    subplot(1,2,1);
+        stem(t,abs(y));
+        hold on;
+        stem(pkLocs*tADC,pks,'-r');
+        line([t(1), t(end)],[THD, THD],'Color',[0.5,0,0.5]);
+        grid on;
+        xlabel('Time [us]');
+        ylabel('Aplitude [V]');
+        hold off;
+    subplot(1,2,2);
+        stem(abs(y));
+        hold on;
+        stem(pkLocs,pks,'-r');
+        line([1, length(y)],[THD, THD],'Color',[0.5,0,0.5]);
+        grid on;
+        xlabel('Time [us]');
+        ylabel('Aplitude [V]');
+        hold off;
