@@ -1,11 +1,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author:  Joshua Simmons
 % Started: August, 2015
-% Status:  Almost complete :p
+% Status:  Incomplete, need to incorporate pinger turning on and off as
+%          well as an ADC synchronizing algorithm.
 %
 % Description:
 %
-% PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!
+% PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!!!
 %
 % Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a
 % 30 kHz SINE wave underwater.
