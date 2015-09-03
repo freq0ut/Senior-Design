@@ -5,7 +5,7 @@
 %
 % Description:
 %
-% PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!
+% PINGER ASSUMED TO ALWAYS BE ON!!!
 %
 % Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a
 % 30 kHz SINE wave underwater.
