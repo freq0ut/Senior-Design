@@ -1,7 +1,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author:  Joshua Simmons
 % Started: August, 2015
-% Status:  Almost complete :p
+% Status:  Incomplete, need to incorporate pinger turning on and off as 
+%          well as an ADC synchronizing algorithm.
 %
 % Description:
 %
