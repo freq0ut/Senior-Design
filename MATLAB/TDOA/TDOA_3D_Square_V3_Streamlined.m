@@ -71,7 +71,6 @@ addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Supp
 % Global Simulation Parameters
 trialTotal = 1E+3;    % Total number of iterations of main loop
 dwellTime = 0;        % Delay after 1 complete iteration of main loop
-fig1_On = true;       % Turn on/off visual containing raw time signals and XCs
 fig2_On = true;       % Turn on/off visual containing compass and source grid
 OS_dwellTime = false; % Gives you time to make to go full screen at the start
                       % of the simulation haha!
@@ -100,9 +99,9 @@ azimuthV2_Est = 0; % For 1st iteration
 azimuthHs =  zeros(1,10); % Median horizontal azimuth array
 azimuthVs =  zeros(1,10); % Median vertical azimuth array
 azimuthV2s =  zeros(1,10); % Second Median vertical azimuth array
-DATA_RAW   = zeros(4,N0); % Raw data
-DATA_CLEAN = zeros(4,N0); % Cleaned data
+DATA = zeros(4,N0);  % Raw data
 tD_Act  = [0;0;0;0]; % Actual time delays
+tD_Est = [0;0;0;0];  % Best guess as to estimated time delays
 tD_EstP = [0;0;0;0]; % Primary estimated time delays
 tD_EstS =  zeros(4,ceil(2*D/lambda)); % Secondary estimated time delays
 TOA_Est = zeros(1,4); % Estimated Time-Of-Arrivals
@@ -110,6 +109,11 @@ XCORR2i = ceil(sqrt(2)*D/(vP*tADC)); % XCORR2 indices
 MPD = 60;  % Minimum Peak Distance
 xNBRS = 2; % Neighbors to look to the left and right of
 THD = 0.8; % Threshold
+
+% Enabling GPU Computing
+%DATA = gpuArray(DATA);
+
+% Testing
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONSTRUCTING INPUT SIGNALS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -119,7 +123,7 @@ THD = 0.8; % Threshold
 for trialCount = 1:trialTotal;
     
     % Actual pinger location (xP,yP,zP)
-    if ( mod(trialCount,20) == 1) 
+    if ( mod(trialCount,20) == 1 )
         Ping_Act(1) =  (2*rand()-1)*(pingMaxDist-D) + D;
         Ping_Act(2) =  (2*rand()-1)*(pingMaxDist-D) + D;
         Ping_Act(3) =  (2*rand()-1)*(pingMaxDist-D) + D;
@@ -153,101 +157,76 @@ for trialCount = 1:trialTotal;
     DC_Offset(4) =  2;
     
     % Incorporating DC offsets and time delays
-    DATA_RAW(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1))); % Channel 1
-    DATA_RAW(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2))); % Channel 2
-    DATA_RAW(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3))); % Channel 3
-    DATA_RAW(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
+    DATA(1,:) = DC_Offset(1) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(1))); % Channel 1
+    DATA(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2))); % Channel 2
+    DATA(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3))); % Channel 3
+    DATA(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
     
     % Incorporating TOA Actual
     for i=1:round( (TOA_Act+tD_Act(1))/tADC );
-        DATA_RAW(1,i) = DC_Offset(1);
+        DATA(1,i) = DC_Offset(1);
     end
 
     for i=1:round( (TOA_Act+tD_Act(2))/tADC );
-        DATA_RAW(2,i) = DC_Offset(2);
+        DATA(2,i) = DC_Offset(2);
     end
 
     for i=1:round( (TOA_Act+tD_Act(3))/tADC );
-        DATA_RAW(3,i) = DC_Offset(3);
+        DATA(3,i) = DC_Offset(3);
     end
 
     for i=1:round( (TOA_Act+tD_Act(4))/tADC );
-        DATA_RAW(4,i) = DC_Offset(4);
+        DATA(4,i) = DC_Offset(4);
     end
-
-    % Adding White Gaussian Noise
-    DATA_RAW = awgn(DATA_RAW,SNR);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-    % Removing DC Offsets    
     chan = 1;
     while (chan <= 4)
-        DC_Offset = AVERAGE(t,DATA_RAW(chan,:));
+        % Removing DC offsets
+        DC_Offset = AVERAGE(t,DATA(chan,:));
         
         for i=1:N0;
-            DATA_CLEAN(chan,i) = DATA_RAW(chan,i) - DC_Offset;        
+            DATA(chan,i) = DATA(chan,i) - DC_Offset;        
         end
+        
+        % Estimated TOAs
+        iBreak = BREAK_THRESHOLD(DATA(chan,:),THD);
+        TOA_Est(chan) = iBreak*tADC;
         
         chan = chan+1;
     end
     
-    % Estimated TOAs
-    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN(1,:),THD);
-    TOA_Est(1) = iBreak1*tADC;
+    chan = 1;
+    while (chan <= 4)
+        % Primary estimated time delays
+        tD_EstP(chan) = TOA_Est(chan) - TOA_Est(1);
+        
+        % Secondary estimated time delays
+        [XC, XC_Lags] = XCORR3( DATA(1,:), DATA(chan,:), XCORR2i );
+        [~,pkLocs] = FIND_PEAKS(XC,MPD,xNBRS);
 
-    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN(2,:),THD);
-    TOA_Est(2) = iBreak2*tADC;
-
-    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN(3,:),THD);
-    TOA_Est(3) = iBreak3*tADC;
-
-    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN(4,:),THD);
-    TOA_Est(4) = iBreak4*tADC;
-
-    % Primary estimated time delays
-    tD_EstP(2) = TOA_Est(2) - TOA_Est(1);
-    tD_EstP(3) = TOA_Est(3) - TOA_Est(1);
-    tD_EstP(4) = TOA_Est(4) - TOA_Est(1);
-
-    % Secondary estimated time delays
-    [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i );
-    [~,pkLocs12] = FIND_PEAKS(XC12,MPD,xNBRS);
-
-    for i=1:length(pkLocs12);
-        tD_EstS(2,i) = XC12_Lags(pkLocs12(i))*tADC;
+        for i=1:length(pkLocs);
+            tD_EstS(chan,i) = XC_Lags(pkLocs(i))*tADC;
+        end
+        
+        % Esimated time delays
+        tD_Est(chan) = COMPARE( tD_EstP(chan), tD_EstS(chan,:) );
+        
+        chan = chan + 1;
     end
-
-    [XC13, XC13_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(3,:), XCORR2i );
-    [~,pkLocs13] = FIND_PEAKS(XC13,MPD,xNBRS);
-
-    for i=1:length(pkLocs13);
-        tD_EstS(3,i) = XC13_Lags(pkLocs13(i))*tADC;
-    end
-    
-    [XC14, XC14_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(4,:), XCORR2i );
-    [~,pkLocs14] = FIND_PEAKS(XC14,MPD,xNBRS);
-
-    for i=1:length(pkLocs14);
-        tD_EstS(4,i) = XC14_Lags(pkLocs14(i))*tADC;
-    end
-    
-    % Estimated time delays
-    tD_Est2 = COMPARE( tD_EstP(2), tD_EstS(2,:) );
-    tD_Est3 = COMPARE( tD_EstP(3), tD_EstS(3,:) );
-    tD_Est4 = COMPARE( tD_EstP(4), tD_EstS(4,:) );
 
     % Estimated Time-Of-Arrival
-    TOA_Est_Scalar = (tD_Est2^2+tD_Est4^2-tD_Est3^2) / ...
-        (2*(tD_Est3-tD_Est2-tD_Est4));
+    TOA_Est_Scalar = (tD_Est(2)^2+tD_Est(4)^2-tD_Est(3)^2) / ...
+        (2*(tD_Est(3)-tD_Est(2)-tD_Est(4)));
     
     % Estimated sphere radii
     R_Est(1) = vP*(TOA_Est_Scalar);
-    R_Est(2) = vP*(TOA_Est_Scalar+tD_Est2);
-    R_Est(3) = vP*(TOA_Est_Scalar+tD_Est3);
-    R_Est(4) = vP*(TOA_Est_Scalar+tD_Est4);
+    R_Est(2) = vP*(TOA_Est_Scalar+tD_Est(2));
+    R_Est(3) = vP*(TOA_Est_Scalar+tD_Est(3));
+    R_Est(4) = vP*(TOA_Est_Scalar+tD_Est(4));
     
     % Estimated pinger location (xP,yP,zP)
     Ping_Est(1) = (R_Est(4)^2-R_Est(2)^2)/(4*d);
@@ -264,80 +243,20 @@ for trialCount = 1:trialTotal;
         azimuthV2_Est = wrapTo2Pi(atan2(-Ping_Est(3),Ping_Est(1))) * (180/pi);
         
         % Running medians get updated with new information
-        azimuthHs(mod(trialCount,10)+1)  = azimuthH_Est;
-        azimuthVs(mod(trialCount,10)+1)  = azimuthV_Est;
+        azimuthHs (mod(trialCount,10)+1) = azimuthH_Est;
+        azimuthVs (mod(trialCount,10)+1) = azimuthV_Est;
         azimuthV2s(mod(trialCount,10)+1) = azimuthV2_Est;
     else
         % Running medians get updated with old information
-        azimuthHs(mod(trialCount,10)+1)  = azimuthH_Est;
-        azimuthVs(mod(trialCount,10)+1)  = azimuthV_Est;
+        azimuthHs (mod(trialCount,10)+1) = azimuthH_Est;
+        azimuthVs (mod(trialCount,10)+1) = azimuthV_Est;
         azimuthV2s(mod(trialCount,10)+1) = azimuthV2_Est;
     end
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    
-    if (fig1_On == true)
-        % Raw time signal plots and XCs
-        figure(1)
-            subplot(2,2,1);
-                plot(t*1E+6,DATA_RAW(1,:),'-b');
-                hold on;
-                plot(t*1E+6,DATA_RAW(2,:),'-r');
-                plot(t*1E+6,DATA_RAW(3,:),'-m');
-                plot(t*1E+6,DATA_RAW(4,:),'-g');
-                xlabel('Time [\mus]');
-                ylabel('Amplitude');
-                legend({'Chan1','Chan2','Chan3','Chan4'});
-                string111 = sprintf('f_{samp} = %0.2f [MHz]', fADC/1E+6);
-                string112 = sprintf('SNR = %0.0f [dB]', SNR);
-                title({string111,string112});
-                hold off;
-            subplot(2,2,2);         
-                stem(XC12_Lags*tADC*1E+6,XC12,'r');
-                hold on;       
-                plot(tD_Act(2)*1E+6,0,'k.','MarkerSize',20);
-                plot(tD_Est2*1E+6,0,'b.','MarkerSize',20);
-                plot(0,0,'w.','MarkerSize',1); 
-                string121 = sprintf('td2_{Act} = %f [us]', tD_Act(2)*1E+6);
-                string122 = sprintf('td2_{Est} = %f [us]', tD_Est2*1E+6);
-                string123 = sprintf('\\Delta td2 = %f [us]', ...
-                    (tD_Act(2)-tD_Est2)*1e6);
-                legend({'',string121,string122,string123});
-                title('XC_{12}');
-                xlabel('Time [\mus]');
-                hold off;
-            subplot(2,2,3);
-                stem(XC13_Lags*tADC*1E+6,XC13,'m');
-                hold on;
-                plot(tD_Act(3)*1E+6,0,'k.','MarkerSize',20);
-                plot(tD_Est3*1E+6,0,'b.','MarkerSize',20);
-                plot(0,0,'w.','MarkerSize',1);
-                string131 = sprintf('td3_{Act} = %f [us]', tD_Act(3)*1E+6);
-                string132 = sprintf('td3_{Est} = %f [us]', tD_Est3*1E+6);
-                string133 = sprintf('\\Delta td3 = %f [us]', ...
-                    (tD_Act(3)-tD_Est3)*1E+6);
-                legend({'',string131,string132,string133});
-                title('XC_{13}');
-                xlabel('Time [\mus]');
-                hold off;
-            subplot(2,2,4);
-                stem(XC14_Lags*tADC*1E+6,XC14,'g');
-                hold on;
-                plot(tD_Act(4)*1E+6,0,'k.','MarkerSize',20);
-                plot(tD_Est4*1E+6,0,'b.','MarkerSize',20);
-                plot(0,0,'w.','MarkerSize',1);
-                string141 = sprintf('td4_{Act} = %f [us]', tD_Act(4)*1E+6);
-                string142 = sprintf('td4_{Est} = %f [us]', tD_Est4*1E+6);
-                string143 = sprintf('\\Delta td4 = %f [us]', ...
-                    (tD_Act(4)-tD_Est4)*1E+6);
-                legend({'',string141,string142,string143});
-                title('XC_{14}');
-                xlabel('Time [\mus]');
-                hold off;
-    end
-        
+
     if (fig2_On == true)
         
         stringTrials = sprintf('Trial %0.0f / %0.0f', trialCount, trialTotal);
@@ -397,11 +316,11 @@ for trialCount = 1:trialTotal;
                 xlim([-2*pingMaxDist,2*pingMaxDist]);
                 ylim([-2*pingMaxDist,2*pingMaxDist]);
                 title('XZ Plane');
-                hold off;            
+                hold off; 
     end
     
     if (OS_dwellTime == false)
-        pause(20);
+        pause(10);
         OS_dwellTime = true;
     end
     
