@@ -1,8 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Author:  Joshua Simmons
 % Started: August, 2015
-% Status:  Incomplete, need to incorporate pinger turning on and off as 
-%          well as an ADC synchronizing algorithm.
+% Status:  COMPLETED
 %
 % Description:
 %
@@ -158,27 +157,27 @@ for trialCount = 1:trialTotal;
     DATA_RAW(2,:) = DC_Offset(2) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(2))); % Channel 2
     DATA_RAW(3,:) = DC_Offset(3) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(3))); % Channel 3
     DATA_RAW(4,:) = DC_Offset(4) + (1.2+0.2*rand())*cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
-    
-    % Incorporating TOA Actual
-    for i=1:round( (TOA_Act+tD_Act(1))/tADC );
+            
+    % Incorporating TOA Actual (POST)
+    for i=round( (TOA_Act+tD_Act(1))/tADC ):N0;
         DATA_RAW(1,i) = DC_Offset(1);
     end
 
-    for i=1:round( (TOA_Act+tD_Act(2))/tADC );
+    for i=round( (TOA_Act+tD_Act(2))/tADC ):N0;
         DATA_RAW(2,i) = DC_Offset(2);
     end
 
-    for i=1:round( (TOA_Act+tD_Act(3))/tADC );
+    for i=round( (TOA_Act+tD_Act(3))/tADC ):N0;
         DATA_RAW(3,i) = DC_Offset(3);
     end
 
-    for i=1:round( (TOA_Act+tD_Act(4))/tADC );
+    for i=round( (TOA_Act+tD_Act(4))/tADC ):N0;
         DATA_RAW(4,i) = DC_Offset(4);
     end
 
     % Adding White Gaussian Noise
     DATA_RAW = awgn(DATA_RAW,SNR);
-
+            
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -196,40 +195,40 @@ for trialCount = 1:trialTotal;
     end
     
     % Estimated TOAs
-    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN(1,:),THD);
-    TOA_Est(1) = iBreak1*tADC;
+    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN(1,:),THD,'RL');
+    TOA_Est(1) = (N0-iBreak1)*tADC;
 
-    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN(2,:),THD);
-    TOA_Est(2) = iBreak2*tADC;
+    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN(2,:),THD,'RL');
+    TOA_Est(2) = (N0-iBreak2)*tADC;
 
-    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN(3,:),THD);
-    TOA_Est(3) = iBreak3*tADC;
+    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN(3,:),THD,'RL');
+    TOA_Est(3) = (N0-iBreak3)*tADC;
 
-    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN(4,:),THD);
-    TOA_Est(4) = iBreak4*tADC;
+    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN(4,:),THD,'RL');
+    TOA_Est(4) = (N0-iBreak4)*tADC;
 
     % Primary estimated time delays
-    tD_EstP(2) = TOA_Est(2) - TOA_Est(1);
-    tD_EstP(3) = TOA_Est(3) - TOA_Est(1);
-    tD_EstP(4) = TOA_Est(4) - TOA_Est(1);
+    tD_EstP(2) = TOA_Est(1) - TOA_Est(2);
+    tD_EstP(3) = TOA_Est(1) - TOA_Est(3);
+    tD_EstP(4) = TOA_Est(1) - TOA_Est(4);
 
     % Secondary estimated time delays
     [XC12, XC12_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(2,:), XCORR2i );
-    [~,pkLocs12] = FIND_PEAKS(XC12,MPD,xNBRS);
+    [~,pkLocs12] = FIND_PEAKS(XC12,THD,MPD,xNBRS);
 
     for i=1:length(pkLocs12);
         tD_EstS(2,i) = XC12_Lags(pkLocs12(i))*tADC;
     end
 
     [XC13, XC13_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(3,:), XCORR2i );
-    [~,pkLocs13] = FIND_PEAKS(XC13,MPD,xNBRS);
+    [~,pkLocs13] = FIND_PEAKS(XC13,THD,MPD,xNBRS);
 
     for i=1:length(pkLocs13);
         tD_EstS(3,i) = XC13_Lags(pkLocs13(i))*tADC;
     end
     
     [XC14, XC14_Lags] = XCORR2( DATA_CLEAN(1,:), DATA_CLEAN(4,:), XCORR2i );
-    [~,pkLocs14] = FIND_PEAKS(XC14,MPD,xNBRS);
+    [~,pkLocs14] = FIND_PEAKS(XC14,THD,MPD,xNBRS);
 
     for i=1:length(pkLocs14);
         tD_EstS(4,i) = XC14_Lags(pkLocs14(i))*tADC;
@@ -379,7 +378,8 @@ for trialCount = 1:trialTotal;
                 plot(-d, 0,'g.','MarkerSize',20);
                 plot(Ping_Act(1),Ping_Act(2),'k.','MarkerSize',20);
                 plot(Ping_Est(1),Ping_Est(2),'c.','MarkerSize',20);
-                %line([0,Ping_Act(1)],[0,Ping_Act(2)],'Color',[1,0,0]);
+                line([-pingMaxDist,pingMaxDist],[pingMaxDist,-pingMaxDist],'Color',[1,0,0]);
+                line([-pingMaxDist,pingMaxDist],[-pingMaxDist,pingMaxDist],'Color',[1,0,0]);
                 ezpolar(@(x)N0*tADC*vP);
                 grid on;
                 xlim([-2*pingMaxDist,2*pingMaxDist]);
