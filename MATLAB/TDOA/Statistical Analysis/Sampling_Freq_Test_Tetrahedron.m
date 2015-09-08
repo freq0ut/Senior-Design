@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+addpath('/Users/betio32/Desktop/Senior Design/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -97,18 +97,24 @@ for trialCount = 1:trialTotal;
     DATA_AZ(2,trialCount) = azimuthV_Act - azimuthV_Est;
 end
 
+string1 = sprintf('f_{ADC} = %0.1f [MHz]', fADC/1E+6);
+string2 = sprintf('D = \\lambda/3');
+
 figure(1)
     subplot(1,2,1);
-        boxplot(DATA_AZ(1,:),'labels',{'H'});
+        boxplot(DATA_AZ(1,:),'labels',{'Horizontal'});
         hold on;
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
+        ylabel('Azimuth Error (deg)');
+        legend({string1,string2});
         hold off;
     subplot(1,2,2);
-        boxplot(DATA_AZ(2,:),'labels',{'V'});
+        boxplot(DATA_AZ(2,:),'labels',{'Vertical'});
         hold on;
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
+        legend({string1,string2});
         hold off;
 
 % 5 degrees

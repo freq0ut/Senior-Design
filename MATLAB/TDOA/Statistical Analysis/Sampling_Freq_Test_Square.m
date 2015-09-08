@@ -2,7 +2,7 @@ close all;
 clear all;
 clc;
 
-addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+addpath('/Users/betio32/Desktop/Senior Design/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -10,7 +10,7 @@ addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Supp
 
 % Global Simulation Parameters
 trialTotal = 1e4; % Total number of iterations of main loop
-DATA_AZ = zeros(1,trialTotal);
+DATA_AZ = zeros(2,trialTotal);
 
 % Pinger Properties
 SNR  = 20;         % Signal to Noise Ratio [dB]
@@ -103,14 +103,28 @@ for trialCount = 1:trialTotal;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     DATA_AZ(1,trialCount) = azimuthH_Act - azimuthH_Est;
+    DATA_AZ(2,trialCount) = azimuthV_Act - azimuthV_Est;
 end
 
+string1 = sprintf('f_{ADC} = %0.1f [MHz]', fADC/1E+6);
+string2 = sprintf('D = \\lambda');
+
 figure(1)
-    boxplot(DATA_AZ(1,:),'labels',{'H'});
-    hold on;
-    line([-1,1],[5,5]);
-    line([-1,1],[-5,-5]);
-    hold off;
+    subplot(1,2,1);
+        boxplot(DATA_AZ(1,:),'labels',{'Horizontal'});
+        hold on;
+        line([-1,1],[5,5]);
+        line([-1,1],[-5,-5]);
+        ylabel('Azimuth Error (deg)');
+        legend({string1,string2});
+        hold off;
+    subplot(1,2,2);
+        boxplot(DATA_AZ(2,:),'labels',{'Vertical'});
+        hold on;
+        line([-1,1],[5,5]);
+        line([-1,1],[-5,-5]);
+        legend({string1,string2});
+        hold off;
     
 % 5 degrees
 % D = 2*lambda, fS =   1.8e6 EXCELLENT
