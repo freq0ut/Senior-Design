@@ -62,19 +62,20 @@ close all;
 clear all;
 clc;
 
-addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+%addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1E+3;    % Total number of iterations of main loop
-dwellTime = 0;        % Delay after 1 complete iteration of main loop
-fig1_On = true;      % Turn on/off visual containing raw time signals and XCs
-fig2_On = true;      % Turn on/off visual containing compass and source grid
+trialTotal = 1E+2;    % Total number of iterations of main loop
+dwellTime = 0.5;      % Delay after 1 complete iteration of main loop
+fig1_On = false;      % Turn on/off visual containing raw time signals and XCs
+fig2_On = true;       % Turn on/off visual containing compass and source grid
 fig3_On = false;      % Turn on/off visual containing RAW FFT and iFFT
-fig4_On = false;       % Turn on/off visual containing CLEAN FFT and iFFT
+fig4_On = false;      % Turn on/off visual containing CLEAN FFT and iFFT
 OS_dwellTime = false; % Gives you time to make to go full screen at the start
                       % of the simulation haha!
 
@@ -645,7 +646,7 @@ for trialCount = 1:trialTotal;
     end
     
     if (OS_dwellTime == false)
-        pause(20);
+        pause(10);
         OS_dwellTime = true;
     end
     
