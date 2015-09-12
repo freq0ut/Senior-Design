@@ -3,109 +3,127 @@ clear all;
 clc;
 
 % Simulation Parameters
-tStop = 60;
+tStop = 10*60;
+oneShotWindowSizing = false;
 
 % FFT Parameters
-fS = 48e3;              % Sampling Frequency [Hz]
+fS = 192E+3;            % Sampling Frequency [Hz]
 tS = 1/fS;              % Sampling Time [s]
-N0 = 1024;              % Total number of data points (power of 2)
+N0 = 4096;              % Total number of data points (power of 2)
 t0 = N0*tS;             % Truncation Time Interval [s]
 f0 = 1/t0;              % Frequency Resolution [Hz]
 t  = 0:tS:tS*(N0-1);    % Time Array
 f  = f0*(-N0/2:N0/2-1); % Frequency Array (double-sided FFT)
+f  = f';
 
-% Ideal Filter Design
-fCent = 0;  % Center Frequenc y [Hz]
+% Ideal Bandpass Filter
+fCent = 0;  % Center Frequency [Hz]
 fChan = fS; % Channel Half Width [Hz]
 H = zeros(N0,1);
-for k = 1:N0
-    if ( abs(f(k)) > fCent-fChan && abs(f(k)) < fCent+fChan)
-        H(k) = 1;
+for i = 1:N0
+    if ( abs(f(i)) >= fCent-fChan && abs(f(i)) <= fCent+fChan)
+        H(i) = 1;
     end
 end
 
 % Type "audiodevinfo" for more information
-chan1 = audiorecorder(fS,16,1,1); % Sampling Rate, #Bits, #Channels, DeviceID
-chan2 = audiorecorder(fS,16,1,2); % Sampling Rate, #Bits, #Channels, DeviceID
-chan3 = audiorecorder(fS,16,1,3); % Sampling Rate, #Bits, #Channels, DeviceID
-chan4 = audiorecorder(fS,16,1,4); % Sampling Rate, #Bits, #Channels, DeviceID
+chan13 = audiorecorder(fS,24,2,1); % Sampling Rate, #Bits, #Channels, DeviceID
+chan24 = audiorecorder(fS,24,2,2); % Sampling Rate, #Bits, #Channels, DeviceID
 
 % Main Recording and Visualization Loop
-frameTotal=round(tStop/(N0*tS));
-for frameCounter=1:frameTotal
-    % Recording Audio
-    recordblocking(chan1, N0*tS); % This isn't wanting to work
-    recordblocking(chan2, N0*tS);
-    recordblocking(chan3, N0*tS);
-    recordblocking(chan4, N0*tS); % This isn't wanting to work
+frameTotal = ceil(tStop/(N0*tS));
+
+for frameCounter = 1:frameTotal;
     
-    % Device Error: Unanticipated host error???
+%     % Recording Audio (synchronously)
+%     recordblocking(chan13, N0*tS);
+%     recordblocking(chan24, N0*tS);
+    
+    % Recording Audio (asynchronously)
+    record(chan13);
+    record(chan24);
+    pause(1E-3);
+    
+    stop(chan13);
+    stop(chan24);
     
     % Retrieving Recorded Audio Data    
-    chan1Data = getaudiodata(chan1);
-    chan2Data = getaudiodata(chan2);
-    chan3Data = getaudiodata(chan3);
-    chan4Data = getaudiodata(chan4);
+    DATA_RAW_t_1 = getaudiodata(chan13);
+    DATA_RAW_t_3 = DATA_RAW_t_1(:,2);
+    DATA_RAW_t_1(:,2) = [];
+    
+    DATA_RAW_t_2 = getaudiodata(chan24);
+    DATA_RAW_t_4 = DATA_RAW_t_2(:,2);
+    DATA_RAW_t_2(:,2) = [];
+    
+    % Truncating data to length N0
+    DATA_RAW_t_1(N0+1:end) = [];
+    DATA_RAW_t_2(N0+1:end) = [];
+    DATA_RAW_t_3(N0+1:end) = [];
+    DATA_RAW_t_4(N0+1:end) = [];
 
     % Calculating FFT (double-sided)
-    CHAN1DATA = fftshift(fft(chan1Data))/N0;
-    CHAN2DATA = fftshift(fft(chan2Data))/N0;
-    CHAN3DATA = fftshift(fft(chan3Data))/N0;
-    CHAN4DATA = fftshift(fft(chan4Data))/N0;
+    DATA_RAW_f_1 = fftshift(fft(DATA_RAW_t_1)) / N0;
+    DATA_RAW_f_2 = fftshift(fft(DATA_RAW_t_2)) / N0;
+    DATA_RAW_f_3 = fftshift(fft(DATA_RAW_t_3)) / N0;
+    DATA_RAW_f_4 = fftshift(fft(DATA_RAW_t_4)) / N0;
     
     % Filtering
-    CHAN1DATA_F = H.*CHAN1DATA;
-    CHAN2DATA_F = H.*CHAN2DATA;
-    CHAN3DATA_F = H.*CHAN3DATA;
-    CHAN4DATA_F = H.*CHAN4DATA;    
+%     DATA_CLEAN_f_1 = H.*DATA_RAW_f_1;
+%     DATA_CLEAN_f_3 = H.*DATA_RAW_f_3;
     
     % Transforming back into time-domain
-    chan1Data_f = ifftshift(ifft(CHAN1DATA_F))*N0;
-    chan2Data_f = ifftshift(ifft(CHAN2DATA_F))*N0;
-    chan3Data_f = ifftshift(ifft(CHAN3DATA_F))*N0;
-    chan4Data_f = ifftshift(ifft(CHAN4DATA_F))*N0;
+%     DATA_CLEAN_t_1 = ifft(ifftshift(DATA_CLEAN_f_1)) * N0;
+%     DATA_CLEAN_t_3 = ifft(ifftshift(DATA_CLEAN_f_3)) * N0;
+
+    % Calculating signal power
+    power1 = DATA_RAW_f_1 .* conj(DATA_RAW_f_1);
+    power2 = DATA_RAW_f_2 .* conj(DATA_RAW_f_2);
+    power3 = DATA_RAW_f_3 .* conj(DATA_RAW_f_3);
+    power4 = DATA_RAW_f_4 .* conj(DATA_RAW_f_4);
 
     % Visualization
     figure(1);
         subplot(2,2,1);
-            hold on;
-            plot(t*1000,chan1Data_f,'b');
-            plot(t*1000,chan2Data_f,'r');
-            plot(t*1000,chan3Data_f,'m');
-            plot(t*1000,chan4Data_f,'g');
-            hold off;
-            grid;
-            grid minor;
-            xlabel('Time [ms]');
-            xlim([0, N0*tS*1000]);
-            ylabel('Amplitude [?]');
-            ylim([-0.5, 0.5]);
-            title({'Filtered Audio Signal','TIME DOMAIN'});
-        subplot(2,2,2);
-            hold on;
-            xcorr(chan1Data_f,chan2Data_f,'coeff');
-            xcorr(chan1Data_f,chan3Data_f,'coeff');
-            xcorr(chan1Data_f,chan4Data_f,'coeff');
-            legend({'Chan12','Chan13','Chan14'});
-            title('Cross-Correlation');
-            hold off;
-        subplot(2,2,3);
-            hold on;
-            plot(f/1000,20*log10(abs(CHAN1DATA_F)),'b');
-            plot(f/1000,20*log10(abs(CHAN2DATA_F)),'r');
-            plot(f/1000,20*log10(abs(CHAN3DATA_F)),'m');
-            plot(f/1000,20*log10(abs(CHAN4DATA_F)),'g');
-            hold off;
+            plot(f/1E+3,10*log10(power1*1E+3),'b');
             grid;
             grid minor;
             xlabel('Frequency [kHz]');
-            xlim([-fS/2000, fS/2000]);
-            ylabel('Magnitude [dB]');
-            ylim([-140, 0]);
-            legend({'Chan1','Chan2','Chan3','Chan4'});
-            title({'Filtered Audio Signal','FREQUENCY DOMAIN'});
+            xlim([-20, 20]);
+            ylabel('Power [dBm]');
+            ylim([-60, 0]);
+            legend({'Chan1'});
+        subplot(2,2,2);
+            plot(f/1E+3,10*log10(power2*1E+3),'r');
+            grid;
+            grid minor;
+            xlabel('Frequency [kHz]');
+            xlim([-20, 20]);
+            ylabel('Power [dBm]');
+            ylim([-60, 0]);
+            legend({'Chan2'});
+        subplot(2,2,3);
+            plot(f/1E+3,10*log10(power3*1E+3),'m');
+            grid;
+            grid minor;
+            xlabel('Frequency [kHz]');
+            xlim([-20, 20]);
+            ylabel('Power [dBm]');
+            ylim([-60, 0]);
+            legend({'Chan3'});
         subplot(2,2,4);
-            compass([0,1],[0,0]);
-            view([90 -90]);
-            title({'Estimated Direction of Target Signal'});            
+            plot(f/1E+3,10*log10(power4*1E+3),'g');
+            grid;
+            grid minor;
+            xlabel('Frequency [kHz]');
+            xlim([-20, 20]);
+            ylabel('Power [dBm]');
+            ylim([-60, 0]);
+            legend({'Chan4'});
+            
+        if (oneShotWindowSizing == true)
+        else
+            oneShotWindowSizing = false;
+            pause(5);
+        end
 end
