@@ -44,9 +44,9 @@ function iBreak = BREAK_THRESHOLD(Y,THD,DIR)
         error('Input for direction should be LR or RL.');
     end
 
-    if ( iBreak == -1 )
-        disp('Threshold wasnt broken.')
-    end
+%     if ( iBreak == -1 )
+%         disp('Threshold wasnt broken.')
+%     end
 
 end
 

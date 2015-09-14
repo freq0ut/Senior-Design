@@ -1,0 +1,71 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Author:  Joshua Simmons
+% Started: September, 2015
+% Status:  INCOMPLETE
+%
+% Description: Using a limited number of samples, this algorithm
+%              synchronizes to the pinger using the Bisector Method. 
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+close all;
+clear all;
+clc;
+
+%addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Global Simulation Parameters
+pulseTotal = 30; % Total number of pulses
+
+% Pinger Properties
+SNR  = 20;     % Signal to Noise Ratio [dB]
+fPing = 30E+3; % Source freq [Hz]
+tOn = 1E-3;    % Pulse On Duration [s]
+PRT = 10E-3;   % Pulse-Repetitive-Period [s]
+
+% ADC
+fADC = 1800E+3; % Sample freq [Hz]
+tADC = 1/fADC;  % Sample period [s]
+N0 = 2^10;      % Samples per frame
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CONSTRUCTING INPUT SIGNAL %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+t = 0:tADC:tOn; % Time array [s]
+
+y = sin(2*pi*fPing*t); % One pulse without zeros
+y = padarray(y,[0,round((PRT-tOn)/tADC)],0,'post'); % One pulse with zeros added
+y = repmat(y,[1,pulseTotal]); % Copying multiple pulses
+
+t = 0:tADC:(length(y)-1)*tADC; % Reconstructing time array
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+while ( i <= length(y) )
+
+    i = i+1;
+end
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figure(1)
+    stem(t*1E+3,y);
+    grid on;
+    grid minor;
+    xlabel('Time [ms]');
+    ylabel('Voltage [V]');
+    title('Input Signal');
+    
+
+
+

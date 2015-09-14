@@ -27,47 +27,47 @@ for i = 1:N0
 end
 
 % Type "audiodevinfo" for more information
-chan13 = audiorecorder(fS,24,2,1); % Sampling Rate, #Bits, #Channels, DeviceID
-chan24 = audiorecorder(fS,24,2,2); % Sampling Rate, #Bits, #Channels, DeviceID
+chan13 = audiorecorder(fS,24,1,2); % Sampling Rate, #Bits, #Channels, DeviceID
+% chan24 = audiorecorder(fS,24,2,2); % Sampling Rate, #Bits, #Channels, DeviceID
 
 % Main Recording and Visualization Loop
 frameTotal = ceil(tStop/(N0*tS));
 
 for frameCounter = 1:frameTotal;
     
-%     % Recording Audio (synchronously)
-%     recordblocking(chan13, N0*tS);
+    % Recording Audio (synchronously)
+    recordblocking(chan13, N0*tS);
 %     recordblocking(chan24, N0*tS);
     
-    % Recording Audio (asynchronously)
-    record(chan13);
-    record(chan24);
-    pause(1E-3);
-    
-    stop(chan13);
-    stop(chan24);
+%     % Recording Audio (asynchronously)
+%     record(chan13);
+%     record(chan24);
+%     pause(1E-3);
+%     
+%     stop(chan13);
+%     stop(chan24);
     
     % Retrieving Recorded Audio Data    
     DATA_RAW_t_1 = getaudiodata(chan13);
-    DATA_RAW_t_3 = DATA_RAW_t_1(:,2);
-    DATA_RAW_t_1(:,2) = [];
-    
-    DATA_RAW_t_2 = getaudiodata(chan24);
-    DATA_RAW_t_4 = DATA_RAW_t_2(:,2);
-    DATA_RAW_t_2(:,2) = [];
+%     DATA_RAW_t_3 = DATA_RAW_t_1(:,2);
+%     DATA_RAW_t_1(:,2) = [];
+%     
+%     DATA_RAW_t_2 = getaudiodata(chan24);
+%     DATA_RAW_t_4 = DATA_RAW_t_2(:,2);
+%     DATA_RAW_t_2(:,2) = [];
     
     % Truncating data to length N0
     DATA_RAW_t_1(N0+1:end) = [];
-    DATA_RAW_t_2(N0+1:end) = [];
-    DATA_RAW_t_3(N0+1:end) = [];
-    DATA_RAW_t_4(N0+1:end) = [];
+%     DATA_RAW_t_2(N0+1:end) = [];
+%     DATA_RAW_t_3(N0+1:end) = [];
+%     DATA_RAW_t_4(N0+1:end) = [];
 
     % Calculating FFT (double-sided)
     DATA_RAW_f_1 = fftshift(fft(DATA_RAW_t_1)) / N0;
-    DATA_RAW_f_2 = fftshift(fft(DATA_RAW_t_2)) / N0;
-    DATA_RAW_f_3 = fftshift(fft(DATA_RAW_t_3)) / N0;
-    DATA_RAW_f_4 = fftshift(fft(DATA_RAW_t_4)) / N0;
-    
+%     DATA_RAW_f_2 = fftshift(fft(DATA_RAW_t_2)) / N0;
+%     DATA_RAW_f_3 = fftshift(fft(DATA_RAW_t_3)) / N0;
+%     DATA_RAW_f_4 = fftshift(fft(DATA_RAW_t_4)) / N0;
+%     
     % Filtering
 %     DATA_CLEAN_f_1 = H.*DATA_RAW_f_1;
 %     DATA_CLEAN_f_3 = H.*DATA_RAW_f_3;
@@ -78,13 +78,13 @@ for frameCounter = 1:frameTotal;
 
     % Calculating signal power
     power1 = DATA_RAW_f_1 .* conj(DATA_RAW_f_1);
-    power2 = DATA_RAW_f_2 .* conj(DATA_RAW_f_2);
-    power3 = DATA_RAW_f_3 .* conj(DATA_RAW_f_3);
-    power4 = DATA_RAW_f_4 .* conj(DATA_RAW_f_4);
+%     power2 = DATA_RAW_f_2 .* conj(DATA_RAW_f_2);
+%     power3 = DATA_RAW_f_3 .* conj(DATA_RAW_f_3);
+%     power4 = DATA_RAW_f_4 .* conj(DATA_RAW_f_4);
 
     % Visualization
     figure(1);
-        subplot(2,2,1);
+%         subplot(2,2,1);
             plot(f/1E+3,10*log10(power1*1E+3),'b');
             grid;
             grid minor;
@@ -93,37 +93,37 @@ for frameCounter = 1:frameTotal;
             ylabel('Power [dBm]');
             ylim([-60, 0]);
             legend({'Chan1'});
-        subplot(2,2,2);
-            plot(f/1E+3,10*log10(power2*1E+3),'r');
-            grid;
-            grid minor;
-            xlabel('Frequency [kHz]');
-            xlim([-20, 20]);
-            ylabel('Power [dBm]');
-            ylim([-60, 0]);
-            legend({'Chan2'});
-        subplot(2,2,3);
-            plot(f/1E+3,10*log10(power3*1E+3),'m');
-            grid;
-            grid minor;
-            xlabel('Frequency [kHz]');
-            xlim([-20, 20]);
-            ylabel('Power [dBm]');
-            ylim([-60, 0]);
-            legend({'Chan3'});
-        subplot(2,2,4);
-            plot(f/1E+3,10*log10(power4*1E+3),'g');
-            grid;
-            grid minor;
-            xlabel('Frequency [kHz]');
-            xlim([-20, 20]);
-            ylabel('Power [dBm]');
-            ylim([-60, 0]);
-            legend({'Chan4'});
+%         subplot(2,2,2);
+%             plot(f/1E+3,10*log10(power2*1E+3),'r');
+%             grid;
+%             grid minor;
+%             xlabel('Frequency [kHz]');
+%             xlim([-20, 20]);
+%             ylabel('Power [dBm]');
+%             ylim([-60, 0]);
+%             legend({'Chan2'});
+%         subplot(2,2,3);
+%             plot(f/1E+3,10*log10(power3*1E+3),'m');
+%             grid;
+%             grid minor;
+%             xlabel('Frequency [kHz]');
+%             xlim([-20, 20]);
+%             ylabel('Power [dBm]');
+%             ylim([-60, 0]);
+%             legend({'Chan3'});
+%         subplot(2,2,4);
+%             plot(f/1E+3,10*log10(power4*1E+3),'g');
+%             grid;
+%             grid minor;
+%             xlabel('Frequency [kHz]');
+%             xlim([-20, 20]);
+%             ylabel('Power [dBm]');
+%             ylim([-60, 0]);
+%             legend({'Chan4'});
             
         if (oneShotWindowSizing == true)
-        else
+%         else
             oneShotWindowSizing = false;
-            pause(5);
+%             pause(5);
         end
 end
