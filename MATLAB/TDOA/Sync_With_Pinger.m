@@ -31,7 +31,7 @@ PRT = 10E-3;     % Pulse-Repetitive-Period [s]
 % ADC
 fADC = 1800E+3;  % Sample freq [Hz]
 tADC = 1/fADC;   % Sample period [s]
-frameSize = 512; % Samples per frame
+N0 = 256; % Samples per frame
 
 % Processor Properties
 headCount = 0;
@@ -47,20 +47,20 @@ t = 0:tADC:tOn; % Time array [s]
 
 y = sin(2*pi*fPing*t); % One pulse without zeros
 y = padarray(y,[0,round((PRT-tOn)/tADC)],0,'post'); % One pulse with zeros added
-y = repmat(y,[1,20]); % Copying multiple pulses
-y = padarray(y,[0,round(rand()*10*frameSize)],0,'pre'); % Random start
+y = repmat(y,[1,14]); % Copying multiple pulses
+y = padarray(y,[0,round(rand()*10*N0)],0,'pre'); % Random start
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 iGlobal = 1;
 tGlobalLast = -1;
-while ( iGlobal+frameSize-1 <= length(y) )
+while ( iGlobal+N0-1 <= length(y) )
     
-    yPartial = y(iGlobal:iGlobal+frameSize-1);
+    yPartial = y(iGlobal:iGlobal+N0-1);
     tHeads = BREAK_THRESHOLD(yPartial,THD,'LR') * tADC;
     
-    if ( tHeads > tPing/4 && tHeads < (tADC*frameSize) - tPing/4 )   
+    if ( tHeads > tPing/4 && tHeads < (tADC*N0) - tPing/4 )   
         
         % Counting heads for median array
         headCount = headCount + 1;
@@ -78,14 +78,15 @@ while ( iGlobal+frameSize-1 <= length(y) )
             tGlobalLast = tGlobal;
             tGlobal = tGlobal + PRT;
         else % Delaying so that the heads are in the center of the frame
-            tError = tHeads - tADC*(frameSize/2);
+            tError = tHeads - tADC*(N0/2);
             tGlobal = tGlobal + PRT + tError + tPing/4;   
         end
         
-        if ( visualization == true && headCount == 13)
-            figure(1);
-                t = 0:tADC:(frameSize-1)*tADC; % Reconstructing time array
-                yPartial = y(iGlobal:iGlobal+frameSize-1);
+        % Displaying the current heads
+        if (visualization == true)
+            figure(headCount);
+                t = 0:tADC:(N0-1)*tADC; % Reconstructing time array
+                yPartial = y(iGlobal:iGlobal+N0-1);
                 stem(t*1E+6,yPartial,'-r')
                 grid on;
                 grid minor;
@@ -95,9 +96,9 @@ while ( iGlobal+frameSize-1 <= length(y) )
         end
         
         % Where we will be next globally
-        iGlobal = round(tGlobal/tADC) - frameSize;
+        iGlobal = round(tGlobal/tADC) - N0;
         
     end   
     
-    iGlobal = iGlobal+frameSize;
+    iGlobal = iGlobal+N0;
 end
