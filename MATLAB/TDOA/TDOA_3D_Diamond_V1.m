@@ -62,18 +62,18 @@ close all;
 clear all;
 clc;
 
-%addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
-addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
+addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+%addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1E+2;    % Total number of iterations of main loop
+trialTotal = 1E+0;    % Total number of iterations of main loop
 dwellTime = 0.5;      % Delay after 1 complete iteration of main loop
-fig1_On = false;      % Turn on/off visual containing raw time signals and XCs
-fig2_On = true;       % Turn on/off visual containing compass and source grid
+fig1_On = true;      % Turn on/off visual containing raw time signals and XCs
+fig2_On = false;       % Turn on/off visual containing compass and source grid
 fig3_On = false;      % Turn on/off visual containing RAW FFT and iFFT
 fig4_On = false;      % Turn on/off visual containing CLEAN FFT and iFFT
 OS_dwellTime = false; % Gives you time to make to go full screen at the start
@@ -173,19 +173,19 @@ for trialCount = 1:trialTotal;
     DATA_RAW_t(4,:) = cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
             
     % Incorporating TOA Actual (POST)
-    for i=round( (TOA_Act+tD_Act(1))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(1))/tADC );
         DATA_RAW_t(1,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(2))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(2))/tADC );
         DATA_RAW_t(2,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(3))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(3))/tADC );
         DATA_RAW_t(3,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(4))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(4))/tADC );
         DATA_RAW_t(4,i) = 0;
     end
 
@@ -253,16 +253,18 @@ for trialCount = 1:trialTotal;
     DATA_CLEAN_t(4,:) = ifft(ifftshift(DATA_CLEAN_f(4,:))) * N0;
 
     % Estimated TOAs
-    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN_t(1,:),THD,'RL');
+    % LR for heads triggered
+    % RL for tails triggered
+    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN_t(1,:),THD,'LR');
     TOA_Est(1) = (N0-iBreak1)*tADC;
 
-    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN_t(2,:),THD,'RL');
+    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN_t(2,:),THD,'LR');
     TOA_Est(2) = (N0-iBreak2)*tADC;
 
-    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN_t(3,:),THD,'RL');
+    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN_t(3,:),THD,'LR');
     TOA_Est(3) = (N0-iBreak3)*tADC;
 
-    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN_t(4,:),THD,'RL');
+    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN_t(4,:),THD,'LR');
     TOA_Est(4) = (N0-iBreak4)*tADC;
 
     % Primary estimated time delays

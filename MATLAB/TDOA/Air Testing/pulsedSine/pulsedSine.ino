@@ -9,7 +9,7 @@ void setup() {
 
 void loop() {
   Tsunami.setAmplitude(3000.0);
-  delay(1000);
+  delay(500);
   Tsunami.setAmplitude(0.0);
-  delay(2000);
+  delay(3000);
 }
