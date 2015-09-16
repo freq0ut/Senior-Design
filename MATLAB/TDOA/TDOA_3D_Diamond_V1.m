@@ -70,7 +70,7 @@ addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Supp
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1E+2;    % Total number of iterations of main loop
+trialTotal = 1E+3;    % Total number of iterations of main loop
 dwellTime = 0.5;      % Delay after 1 complete iteration of main loop
 fig1_On = false;      % Turn on/off visual containing raw time signals and XCs
 fig2_On = true;       % Turn on/off visual containing compass and source grid
