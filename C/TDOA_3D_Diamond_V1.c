@@ -75,7 +75,7 @@
 *				iii. Taking median of last 10 azimuths
 */
 
-#include <supportFunctions.h>
+#include "supportFunctions.h"
 #include <stdio.h>
 #include <math.h>
 
