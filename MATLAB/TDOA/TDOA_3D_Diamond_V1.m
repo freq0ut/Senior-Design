@@ -62,8 +62,8 @@ close all;
 clear all;
 clc;
 
-%addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
-addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
+addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+%addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -146,8 +146,8 @@ for trialCount = 1:trialTotal;
     end
     
     % Actual azimuth to pinger
-    azimuthH_Act = wrapTo2Pi(atan2(Ping_Act(2),Ping_Act(1))) * (180/pi);
-    azimuthV_Act = wrapTo2Pi(atan2(Ping_Act(3),Ping_Act(1))) * (180/pi);
+    azimuthH_Act = WRAPTO2PI(atan2(Ping_Act(2),Ping_Act(1))) * (180/pi);
+    azimuthV_Act = WRAPTO2PI(atan2(Ping_Act(3),Ping_Act(1))) * (180/pi);
     
     % Actual sphere radii
     R_Act(1) = sqrt( (Ping_Act(1)  )^2 + (Ping_Act(2)-d)^2 + (Ping_Act(3)  )^2 );
@@ -173,19 +173,19 @@ for trialCount = 1:trialTotal;
     DATA_RAW_t(4,:) = cos(2*pi*fPing*(t+tD_Act(4))); % Channel 4
             
     % Incorporating TOA Actual (POST)
-    for i=round( (TOA_Act+tD_Act(1))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(1))/tADC );
         DATA_RAW_t(1,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(2))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(2))/tADC );
         DATA_RAW_t(2,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(3))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(3))/tADC );
         DATA_RAW_t(3,i) = 0;
     end
 
-    for i=round( (TOA_Act+tD_Act(4))/tADC ):N0;
+    for i=1:round( (TOA_Act+tD_Act(4))/tADC );
         DATA_RAW_t(4,i) = 0;
     end
 
@@ -253,16 +253,18 @@ for trialCount = 1:trialTotal;
     DATA_CLEAN_t(4,:) = ifft(ifftshift(DATA_CLEAN_f(4,:))) * N0;
 
     % Estimated TOAs
-    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN_t(1,:),THD,'RL');
+    % LR for heads triggered
+    % RL for tails triggered
+    iBreak1 = BREAK_THRESHOLD(DATA_CLEAN_t(1,:),THD,'LR');
     TOA_Est(1) = (N0-iBreak1)*tADC;
 
-    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN_t(2,:),THD,'RL');
+    iBreak2 = BREAK_THRESHOLD(DATA_CLEAN_t(2,:),THD,'LR');
     TOA_Est(2) = (N0-iBreak2)*tADC;
 
-    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN_t(3,:),THD,'RL');
+    iBreak3 = BREAK_THRESHOLD(DATA_CLEAN_t(3,:),THD,'LR');
     TOA_Est(3) = (N0-iBreak3)*tADC;
 
-    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN_t(4,:),THD,'RL');
+    iBreak4 = BREAK_THRESHOLD(DATA_CLEAN_t(4,:),THD,'LR');
     TOA_Est(4) = (N0-iBreak4)*tADC;
 
     % Primary estimated time delays
@@ -317,9 +319,9 @@ for trialCount = 1:trialTotal;
     if ( isreal(Ping_Est(1)) && isreal(Ping_Est(2)) && isreal(Ping_Est(3)) ...
             && ~isnan(Ping_Est(1)) && ~isnan(Ping_Est(2)) && ~isnan(Ping_Est(3)))
 
-        azimuthH_Est  = wrapTo2Pi(atan2( Ping_Est(2),Ping_Est(1))) * (180/pi);
-        azimuthV_Est  = wrapTo2Pi(atan2( Ping_Est(3),Ping_Est(1))) * (180/pi);
-        azimuthV2_Est = wrapTo2Pi(atan2(-Ping_Est(3),Ping_Est(1))) * (180/pi);
+        azimuthH_Est  = WRAPTO2PI(atan2( Ping_Est(2),Ping_Est(1))) * (180/pi);
+        azimuthV_Est  = WRAPTO2PI(atan2( Ping_Est(3),Ping_Est(1))) * (180/pi);
+        azimuthV2_Est = WRAPTO2PI(atan2(-Ping_Est(3),Ping_Est(1))) * (180/pi);
         
         % Running medians get updated with new information
         azimuthHs(mod(trialCount,10)+1)  = azimuthH_Est;
@@ -331,6 +333,8 @@ for trialCount = 1:trialTotal;
         azimuthVs(mod(trialCount,10)+1)  = azimuthV_Est;
         azimuthV2s(mod(trialCount,10)+1) = azimuthV2_Est;
     end
+    
+    % Taking the medians
     
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% VISUALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
