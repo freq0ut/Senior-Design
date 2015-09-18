@@ -2,31 +2,28 @@ close all;
 clear all;
 clc;
 
-addpath('/Users/betio32/Desktop/Senior Design/Senior-Design/MATLAB/Support_Functions');
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%% INITIALIZATION OF PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
 trialTotal = 1e4; % Total number of iterations of main loop
-DATA_AZ = zeros(2,trialTotal);
+DATA_AZ = zeros(1,trialTotal);
 
 % Pinger Properties
-SNR  = 20;         % Signal to Noise Ratio [dB]
-fPing = 30e3;      % Source freq [Hz]
+fPing = 47e3;      % Source freq [Hz]
 tPing = 1/fPing;   % Source period [s]
 vP   = 1482;       % Propagation Velocity [m/s]
 lambda = vP/fPing; % Wavelength [m]
 pingMaxDist = 1;   % Pinger max distance from sensors [m]
 
 % Hydrophone Properties
-D = lambda;    % Hydrophone spacing [m]
+D = 0.05;    % Hydrophone spacing [m]
 
 % ADC
-fADC = 1.8e6;  % Sample freq [Hz]
-tADC = 1/fADC; % Sample period [s]
-N0 = 2^11;     % Samples per frame
+fADC = 300E+3;  % Sample freq [Hz]
+tADC = 1/fADC;  % Sample period [s]
+N0 = 1024;      % Samples per frame
 
 % Microcontroller Properties
 tD_Act = [0;0;0;0]; % Actual time delays
@@ -89,10 +86,8 @@ for trialCount = 1:trialTotal;
     % Calculating estimated azimuths to source
     if ( isreal(Ping_Est(1)) && isreal(Ping_Est(2)) && isreal(Ping_Est(3)) )
         azimuthH_Est = wrapTo2Pi(atan2(Ping_Est(2),Ping_Est(1))) * (180/pi);
-        azimuthV_Est = wrapTo2Pi(atan2(Ping_Est(3),Ping_Est(1))) * (180/pi);
     else
         azimuthH_Est = 0;
-        azimuthV_Est = 0;
         Ping_Est(1) = -1;
         Ping_Est(2) = -1;
         Ping_Est(3) = -1;    
@@ -103,29 +98,18 @@ for trialCount = 1:trialTotal;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     DATA_AZ(1,trialCount) = azimuthH_Act - azimuthH_Est;
-    DATA_AZ(2,trialCount) = azimuthV_Act - azimuthV_Est;
 end
 
-string1 = sprintf('f_{ADC} = %0.1f [MHz]', fADC/1E+6);
-string2 = sprintf('D = \\lambda');
+string1 = sprintf('f_{ADC} = %0.0f [kHz]', fADC/1E+3);
+string2 = sprintf('D = %0.1f\\lambda', D/lambda);
+string3 = sprintf('Error Analysis for f_{Ping} = %0.1f [kHz]', fPing/1E+3);
 
 figure(1)
-    subplot(1,2,1);
         boxplot(DATA_AZ(1,:),'labels',{'Horizontal'});
         hold on;
         line([-1,1],[5,5]);
         line([-1,1],[-5,-5]);
         ylabel('Azimuth Error (deg)');
         legend({string1,string2});
+        title(string3);
         hold off;
-    subplot(1,2,2);
-        boxplot(DATA_AZ(2,:),'labels',{'Vertical'});
-        hold on;
-        line([-1,1],[5,5]);
-        line([-1,1],[-5,-5]);
-        legend({string1,string2});
-        hold off;
-    
-% 5 degrees
-% D = 2*lambda, fS =   1.8e6 EXCELLENT
-% D = lambda/3, fS = > 2 GHz
