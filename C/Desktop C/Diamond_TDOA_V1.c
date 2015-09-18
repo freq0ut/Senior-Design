@@ -75,21 +75,21 @@
 *				iii. Taking median of last 10 azimuths
 */
 
-//#include "JS_TDOA.h"
-//#include "JS_cmath.h"
+//#include "js_tdoa.h"
+#include "js_cmath.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// CONSTANT DECLARATIONS //////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// Mathematical Constants
-static const double PI = acos(-1.0);
+// Pinger Parameters
+static const double fPinger = 37.0E+3;// Pinger Frequency [Hz]
 
 // Hydrophone Parameters
-static const double vP = 1482.0;        // Velocity of Propagation [m/s]
-static const double lambda = vP/fPinger;// Wavelength [m]
-static const double D = lambda;         // Sensor spacing [m]
-static const double d = D/sqrt(2.0);    // For System of Coordinates [m]
+static const double vP = 1482.0;            // Velocity of Propagation [m/s]
+static const double lambda = vP/fPinger;    // Wavelength [m]
+static const double D = lambda;             // Sensor spacing [m]
+static const double d = D/1.414213562373095;// For System of Coordinates [m]
 
 // ADC Parameters
 static const double fADC = 1800.0E+3;// ADC Sampling Frequency [Hz]
@@ -105,49 +105,37 @@ static const double fCenter = 30.0E+3;// Center frequency [Hz]
 static const double halfChan = 5.0E+3;// Channel half width [Hz]
 
 // Processor Parameters
-static const int maxPeaks = (int) ceiling(D/lambda) + 1;// Maximum Number of Peaks for XC
-static const int medianSize = 10;                       // For Taking Medians of Azimuths
+static const int iBound = (int) D/(vP*tADC)+1;// Maximum +/- Index for Cross-Correlation
+static const int maxPeaks = (int) D/lambda+1; // Maximum Number of Peaks for XC
+static const int medianSize = 10;             // For Taking Medians of Azimuths
+static const int NBRS = 1;					  // Neighbors for finding local maximums
+static const double THD = 0.9;				  // Threshold level
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// VARIABLE DECLARATIONS //////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// Estimated Pinger Parameters
-double fPinger = 37.0E+3;   // Pinger Frequency [Hz]
-double pulseLength = 4.0E-3;// Pulse Length [s]
-double PRT = 2.0;           // Pulse-Repetitive-Period [s]
-
-// Are we synchronized with the pinger?
-int pingerSynced = 0;
-
-// Time Data
-double chan1t[N0];
-double chan2t[N0];
-double chan3t[N0];
-double chan4t[N0];
+// Cross-correlations
+double XC12[2*iBound+1], XC13[2*iBound+1], XC14[2*iBound+1];
 
 // Frequency Data
-double complex chan1f[N0];
-double complex chan2f[N0];
-double complex chan3f[N0];
-double complex chan4f[N0];
+double complex chan1f[N0], chan2f[N0], chan3f[N0], chan4f[N0];
 
 // Power
 double power1, power2, power3, power4;
 
-// Time-of-Arrival and Time Delays
-double primaryTOAs[maxPeaks];
-double secondaryTOAs[4];
-double primaryTDs[4];
-double secondaryTDs[maxPeaks];
+// Time Data
+double chan1t[N0], chan2t[N0], chan3t[N0], chan4t[N0];
 
-// Pinger Locating
-double sphereRadii[4];
+// TDOA Algorithm
+double azimuthH, azimuthV1, azimuthV2;
+double azimuthHArray[medianSize], azimuthV1Array[medianSize], azimuthV2Array[medianSize];
 double pingerCoordinates[3];
-double azimuthH, azimithV1, azimuthV2;
-double azimuthHArray[medianSize];
-double azimuthV1Array[medianSize];
-double azimuthV2Array[medianSize];
+int pingerSynced = 0;
+double PRT = 2.0;
+double sphereRadii[4];
+double TOA, TOA_BreakWall[4];
+double tD_BreakWall[4], tD_XC[maxPeaks], tD2, tD3, tD4;
 
 /////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
