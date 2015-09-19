@@ -5,9 +5,11 @@ double complex BPF (double complex Y[], int yLength, double H[]) {
     //
     // Description: Applies a digital brick wall bandpass filter to a complex signal Yf.
 
-    for (int i=0; i<yLength; i++) { Y[i] = H[i] * Y[i]; }
+    double complex Yf[yLength];
 
-    return Y;
+    for (int i=0; i<yLength; i++) { Yf[i] = H[i] * Y[i]; }
+
+    return Yf;
 }
 
 void PingerLocation (double PingerLoc[], double R[], double d) {

@@ -75,7 +75,7 @@
 *				iii. Taking median of last 10 azimuths
 */
 
-//#include "js_tdoa.h"
+#include "js_tdoa.h"
 #include "js_cmath.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -150,7 +150,7 @@ int main (void){
             FFT();
             Power();
             AdjustPGA();
-            BPF();
+            for (int i=0; i<yLength; i++) { Yf[i] = H[i] * Y[i]; } // Bandpass Filtering
             iFFT();
             syncPinger();
             Delay();
@@ -161,10 +161,10 @@ int main (void){
             FFT();
             Power();
             AdjustPGA();
-            BPF();
+            for (int i=0; i<yLength; i++) { Yf[i] = H[i] * Y[i]; } // Bandpass Filtering
             iFFT();
             BreakWall_TOAs();
-                // Re-sync Pinger
+                // Re-sync Pinger if -1 returned
             BreakWall_tDs();
             XC_tDs();
             Compare_tDs();
