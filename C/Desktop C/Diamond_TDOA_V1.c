@@ -13,8 +13,8 @@
 *		2. Frequency: 25-40 [kHz] in 0.5 [kHz] increments
 *		3. Pulse Length: 4.0 [ms]
 *		4. Pulse Repetition: 0.5 OR 1 OR 2 [s]
-*       5. Acoustic Output Power: 0.125-5.000 [W]
-*       6. Depth Rating: 750 [m]
+*       	5. Acoustic Output Power: 0.125-5.000 [W]
+*       	6. Depth Rating: 750 [m]
 *
 *	3D Cartesian co-ordinate system with the origin centered in the middle of the sensor
 *	array. Sensor geometry is square shaped residing all in the XY-plane.
@@ -122,7 +122,7 @@ static const double halfChan = 5.0E+3;// Channel half width [Hz]
 static const int iBound = (int) D/(vP*tADC)+1;     // Maximum +/- Index for XCs
 static const int medianSize = 10;                  // For Taking Medians of Azimuths
 static const int peakCounterMax = (int) D/lambda+1;// Maximum Number of Peaks for XCs
-static const double THD = 0.9;				       // Threshold Level
+static const double THD = 0.9;			   // Threshold Level
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// VARIABLE DECLARATIONS //////////////////////////////////
@@ -202,7 +202,7 @@ int main (void){
             BPF();
             iFFT();
             syncPinger();
-            Delay();
+            Delay(PRT);
         }
 
         else if ( pingerSynced == 1 ) {
@@ -212,8 +212,7 @@ int main (void){
             AdjustPGA();
             BPF();
             iFFT();
-            BreakWall_TOAs();
-                // Re-sync Pinger if -1 returned
+            BreakWall_TOAs(); // Re-sync Pinger if -1 returned
             BreakWall_tDs();
             XC_tDs();
             Compare_tDs();
@@ -221,7 +220,7 @@ int main (void){
             SphereRadii();
             PingerLocation();
             PingerAzimuth();
-            Delay();
+            Delay(PRT);
         }
 
         else;
