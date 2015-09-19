@@ -152,7 +152,7 @@ int pingerSynced = 0;
 double PRT = 2.0;
 
 // Power
-double powerfx;
+double powerx_f;
 
 // Time Sampled Data
 double chanx_t[4][1+N0];
