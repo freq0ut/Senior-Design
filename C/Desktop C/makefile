@@ -12,5 +12,5 @@ diamondTDOA: $(OBJ)
 .PHONY: clean
 clean:
 	$(RM) *.o
-	$(RM) js_cmath js_tdoa Diamond_TDOA_V1 DiamondTDOA
+	$(RM) js_cmath js_tdoa Diamond_TDOA_V1 diamondTDOA
 	$(RM) *~
