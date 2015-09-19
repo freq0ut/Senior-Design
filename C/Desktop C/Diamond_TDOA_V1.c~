@@ -75,7 +75,7 @@
 *				iii. Taking median of last 10 azimuths
 */
 
-#include "js_tdoa.h"
+//#include "js_tdoa.h"
 #include "js_cmath.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ int main (void){
             BPF();
             iFFT();
             BreakWall_TOAs();
-                // Re-sync Pinger if -1 returned
+                // Re-sync Pinger
             BreakWall_tDs();
             XC_tDs();
             Compare_tDs();
