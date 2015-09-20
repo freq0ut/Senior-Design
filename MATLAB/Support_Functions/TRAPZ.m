@@ -17,8 +17,6 @@ function A = TRAPZ(X,Y)
         if ( Y(i)*Y(i+1) > 0 )
             a = (dx/2) * ( Y(i)+Y(i+1) );
             A = A + a;
-            
-            myString = sprintf('a = %f \t A = %f \n', a, A)
 
         % Two triangles
         else

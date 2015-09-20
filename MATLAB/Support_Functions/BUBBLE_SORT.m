@@ -2,6 +2,7 @@ function [Y,X] = BUBBLE_SORT(Y,X)
     % ***COMPLETED***
     % This function sorts Y from smallest to largest
     % while keeping the pairing of the X's intact.
+    if ( length(X) ~= length(Y) )
         error('X and Y are not the same length!')
     end
 

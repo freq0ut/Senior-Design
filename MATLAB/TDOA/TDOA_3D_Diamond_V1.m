@@ -62,15 +62,15 @@ close all;
 clear all;
 clc;
 
-addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
-%addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
+%addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
+addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Global Simulation Parameters
-trialTotal = 1E+3;    % Total number of iterations of main loop
+trialTotal = 1;    % Total number of iterations of main loop
 dwellTime = 0.5;      % Delay after 1 complete iteration of main loop
 fig1_On = false;      % Turn on/off visual containing raw time signals and XCs
 fig2_On = true;       % Turn on/off visual containing compass and source grid
@@ -80,7 +80,7 @@ OS_dwellTime = false; % Gives you time to make to go full screen at the start
                       % of the simulation haha!
 
 % Pinger Properties
-SNR  = 20;         % Signal to Noise Ratio [dB]
+SNR  = 0;         % Signal to Noise Ratio [dB]
 fPing = 30E+3;     % Source freq [Hz]
 tPing = 1/fPing;   % Source period [s]
 vP = 1482;         % Propagation Velocity [m/s]
