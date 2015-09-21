@@ -13,8 +13,8 @@
 *		2. Frequency: 25-40 [kHz] in 0.5 [kHz] increments
 *		3. Pulse Length: 4.0 [ms]
 *		4. Pulse Repetition: 0.5 OR 1 OR 2 [s]
-*       	5. Acoustic Output Power: 0.125-5.000 [W]
-*       	6. Depth Rating: 750 [m]
+*		5. Acoustic Output Power: 0.125-5.000 [W]
+*		6. Depth Rating: 750 [m]
 *
 *	3D Cartesian co-ordinate system with the origin centered in the middle of the sensor
 *	array. Sensor geometry is square shaped residing all in the XY-plane.
@@ -40,7 +40,7 @@
 *		pinger = (xP,yP,zP)
 *
 *	Sequence of Events
-*		1. Initialization of parameters
+*		1. Constant and variable declarations and initializations
 *		2. Synchorization with pinger using a single channel
 *			A. Chan1 sampled
 *			B. FFT
@@ -48,10 +48,11 @@
 *			    i. Adjust PGA gain if necessary
 *			D. Ideal bandpass filter
 *			E. iFFT
-*			F. Pulse-Repetitive-Period estimated.
-*				i. Adjust trigger delay
-*			G. Heads centered in frame window.
-*				i. Adjust trigger delay
+*			F. Pinger synchronized
+*				i.  Pulse-Repetitive-Period estimated
+						a. PRT adjusted
+*				ii. Heads centered in frame window
+*						a. PRT adjusted
 *		3. All 4 channels sampled and azimuth to source estimated
 *			A. All channels sampled
 *			B. FFT
@@ -59,19 +60,18 @@
 *			    i. Adjust PGA gain if necessary
 *			D. Ideal bandpass filter
 *			E. iFFT
-*			F. Break TOAs
-*				i. Head triggered left-to-right break threshold
+*			F. Breakwall TOAs
+*				i. Head triggered left-to-right break threshold detection
 *			G. Break time delays
-*				i. Difference in secondary pseudo-TOAs
+*				i. Difference in breakwall TOAs
 *			H. XC time delays
-*				i. Cross-correlation sliver
-*			I. Comparing break and XC time delays
-*			J. Primary TOA
+*				i. Bounded cross-correlation 
+*			I. Comparing breakwall and XC time delays to find the superior TOA
 *			K. Sphere radii
-*			L. Pseudo pinger location
+*			L. Pseudo pinger location (could be complex)
 *			M. Azimuths
-*				i.   Checking for complex solutions
-*				ii.  Saving last 10 azimuths
+*				i.   Checking for complex solutions (arg(complex number) == 0)
+*				ii.  Saving last 10 azimuths if REAL
 *				iii. Taking median of last 10 azimuths
 *
 *   Programming Conventions:
@@ -93,82 +93,99 @@
 // NONE!
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////// CONSTANT DECLARATIONS //////////////////////////////////
+//////////////////////// CONSTANT DECLARATION AND INITIALIZATION ////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// Pinger Parameters
-static const double fPinger = 37.0E+3;// Pinger Frequency [Hz]
-
-// Hydrophone Parameters
-static const double vP = 1482.0;            // Velocity of Propagation [m/s]
-static const double lambda = vP/fPinger;    // Wavelength [m]
-static const double D = lambda;             // Sensor spacing [m]
-static const double d = D/1.414213562373095;// For System of Coordinates [m]
-
-// ADC Parameters
+// ADC
 static const double fADC = 1800.0E+3;// ADC Sampling Frequency [Hz]
-static const double tADC = 1.0/fADC; // ADC Sampling Period [s]
-static const int N0 = 1024;          // Frame Size [samples]
 
-// FFT Parameters
-static const double T0 = N0*tADC;// Truncation Time Interval [s]
-static const double f0 = 1.0/T0; // Frequency Resolution [Hz]
-
-// Ideal Digital Bandpass Filter Parameters
+// Bandpass Filter
 static const double fCenter = 30.0E+3;// Center frequency [Hz]
 static const double halfChan = 5.0E+3;// Channel half width [Hz]
 
-// Processor Parameters
-static const int iBound = (int) D/(vP*tADC)+1;     // Maximum +/- Index for XCs
-static const int medianSize = 10;                  // For Taking Medians of Azimuths
-static const int peakCounterMax = (int) D/lambda+1;// Maximum Number of Peaks for XCs
-static const double THD = 0.9;			   // Threshold Level
+// Hydrophone
+static const double vP = 1482.0;// Velocity of Propagation [m/s]
+
+// Pinger
+static const double fPinger = 37.0E+3;// Pinger Frequency [Hz] THIS MAY BECOME A VARIABLE
+
+// Processor
+static const int medianSize = 10;// For Taking Medians of Azimuths
+static const int N0 = 1024;// Frame Size [samples]
 
 /////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////// VARIABLE DECLARATIONS //////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
+// ADC
+double tADC;
+
 // Azimuths
 double azimuthH, azimuthV1, azimuthV2;
-double azimuthHArray[1+medianSize] = {medianSize};
-double azimuthV1Array[1+medianSize] = {medianSize};
-double azimuthV2Array[1+medianSize] = {medianSize};
+double azimuthHArray[1+medianSize], azimuthV1Array[1+medianSize],azimuthV2Array[1+medianSize];
 
-// Cross-Correlations
-double XC1x[1+(2*iBound+1)] = {2*iBound+1};
+// FFT
+double f0, powerx_f, T0;
+double f[1+N0];
+double complex chanx_f[1+N0], H[1+N0];
 
-// Frequency Sampled Data
-double complex chanx_f[1+N0] = {N0};
+// Hydrophones
+double d,D,lambda;
 
-// Frequency Vector (double-sided)
-double f[1+N0] = {N0};
-
-// Ideal Digital Bandpass Filter
-double complex H[1+N0] = {N0};
+// Cross-correlations
+int iBound, peakCounterMax;
+// XC declared below, size dependent on iBound
 
 // Pinger
-double pingerCoordinates[1+3] = {3};
-int pingerSynced = 0;
-double PRT = 2.0;
+int pingerSynced;
+double PRT;
+double complex pingerLoc[1+3];
 
-// Power
-double powerx_f;
+// TDOA
+double SphereRadii[1+4];
+
+// Time Vector
+double t[1+N0];
 
 // Time Sampled Data
 double chanx_t[4][1+N0];
-    chanx_t[0][0] = N0;
-    chanx_t[1][0] = N0;
-    chanx_t[2][0] = N0;
-    chanx_t[3][0] = N0;
 
-// Time Vector
-double t[1+N0] = {N0};
+/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////// VARIABLE INITIALIZATIONS /////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
+
+// ADC
+tADC = 1.0/fADC;
+
+// FFT
+T0 = N0*tADC;
+f0 = 1.0/T0;
+chanx_f[0] = N0;
+
+// Hydrophones
+lambda = vP/fPinger;
+D = lambda;
+d = D/sqrt(2.0);
+
+// Pinger
+pingerSynced = 0;
+PRT = 1.0;
+pingerLoc[0] = 3;
+
+// Cross-Correlations
+iBound = (int) (D/(vP*tADC)+1);// Maximum +/- Index for XCs
+peakCounterMax = (int) (D/lambda+1);// Maximum Number of Peaks for XCs
+double XC1x[1+(2*iBound+1)];
+XC1x[0] = 2*iBound+1;
+
+// Time sampled data
+chanx_t[0][0] = chanx_t[1][0] = chanx_t[2][0] = chanx_t[3][0] = N0;
 
 // TDOA Algorithm
 double sphereRadii[1+4] = {4};
 double tD2, tD3, tD4, TOA;
 double tD_BreakWall[1+4] = {4};
-double tD_XC[1+maxPeaks] = {maxPeaks};
+double tD_XC[1+peakCounterMax] = {peakCounterMax};
 double TOA_BreakWall[1+4] = {4};
 
 /////////////////////////////////////////////////////////////////////////////////////////
