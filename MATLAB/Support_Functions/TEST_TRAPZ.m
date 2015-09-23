@@ -2,9 +2,11 @@ close all;
 clear all;
 clc;
 
-X = 0:15;
-Y = 0:15;
+N0 = 1024;
 
-A = SIMPSON(Y,X)
+fADC = 100;
 
-stem(X,Y)
+t = 0:1/fADC:(N0-1)/fADC;
+y = sin(2*pi*t);
+
+stem(t,y)
