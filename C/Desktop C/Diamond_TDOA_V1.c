@@ -112,7 +112,7 @@ static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz] THIS MAY BECOME
 static const double vP = 1482.0;                    // Velocity of Propagation [m/s]
 static const double lambda = vP/fPinger;            // Wavelength [m]
 static const double D = lambda;                     // Hydrophone Spacing [m]
-static const double d = lambda/1.414213562373095;   // For System of Coordinates [m]
+static const double d = D/1.414213562373095;   // For System of Coordinates [m]
 
 // Processor
 static const int medianSize = 10;       // For Taking Medians of Azimuths
@@ -139,13 +139,14 @@ int main (void) {
     double complex pingerLoc[1+3] = {3};    // Pinger Location Co-ordinates
 
     // TDOA
-    double azimuthH;    // Single horizontal azimuth estimate [deg]
-    double azimuthV1;   // Single vertical azimuth 1 estimate [deg]
-    double azimuthV2;   // Single vertical azimuth 2 estimate [deg]
-    double tD2;         // Channel 2 Time Delay [s]
-    double tD3;         // Channel 3 Time Delay [s]
-    double tD4;         // Channel 4 Time Delay [s]
-    double TOA;         // Time-of-Arrival [s]
+    int medianCounter = 1;  // For logging single azimuth estimates into their respective arrays.
+    double azimuthH;        // Single horizontal azimuth estimate [deg]
+    double azimuthV1;       // Single vertical azimuth 1 estimate [deg]
+    double azimuthV2;       // Single vertical azimuth 2 estimate [deg]
+    double tD2;             // Channel 2 Time Delay [s]
+    double tD3;             // Channel 3 Time Delay [s]
+    double tD4;             // Channel 4 Time Delay [s]
+    double TOA;             // Time-of-Arrival [s]
     double azimuthHArray [1+medianSize] = {medianSize}; // Array of previous horizontal azimuth estimates
     double azimuthV1Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 1 estimates
     double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
@@ -198,22 +199,18 @@ int main (void) {
             power1 = SignalPower(f,chanx_f);
 
             // Adjust PGA
-            if (power1 >= powerMax) {
-                decreasePGA();
-            }
-            else if (power1 <= powerMin) {
-                increasePGA();
-            }
+            if      (power1 >= powerMax)    { adjustPGA(0); }
+            else if (power1 <= powerMin)    { adjustPGA(1); }
             else;
 
             // Bandpass Filtering
-            for (int i=1; i <= N0; i++) {
-                chanx_f[i] = chanx_f[i] * H[i];
-            }
+            for (int i=1; i <= N0; i++) { chanx_f[i] = chanx_f[i] * H[i];}
 
             iFFT(f,chanx_f,chan1_t);
+
+            printf("\nAttempting to synchonize with the pinger...");
+
             PRT = syncPinger();
-            Delay(PRT);
         }
 
         else if ( pingerSynced == TRUE ) {
@@ -222,69 +219,77 @@ int main (void) {
             power1 = SignalPower(f,chanx_f);
 
             // Adjust PGA
-            if (powerx_f >= powerMax) {
-                decreasePGA();
-            }
-            else if (powerx_f <= powerMin) {
-                increasePGA();
-            }
+            if      (power1 >= powerMax)    { adjustPGA(0); }
+            else if (power1 <= powerMin)    { adjustPGA(1); }
             else;
 
             // Bandpass Filtering
-            for (int i=1; i <= N0; i++) {
-                chanx_f[i] = chanx_f[i] * H[i];
-            }
+            for (int i=1; i <= N0; i++) { chanx_f[i] = chanx_f[i] * H[i]; }
 
             iFFT(f,chanx_f,chan1_t);
-            breakwall_TOAs[1] = Breakwall(chan1_t,THD,0) * tADC;
+            breakwall_TOAs[1] = Breakwall(chan1_t,threshold,0) / fADC;
             
             // Resynchronize with the pinger
-            if ( breakwall_TOAs[1] == -1 ) {
-                pingerSynced == FALSE;
-            }
+            if ( breakwall_TOAs[1] == -1 ) { pingerSynced == FALSE; }
             else;
             
             if ( pingerSynced == TRUE ) {
                 FFT(t,chan2_t,chanx_f);
-                
-                for (int i=1; i <= H[0]; i++) {
-                    chanx_f[i] = chanx_f[i] * H[i];
-                }
-
+                for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i];}
                 iFFT(f,chanx_f,chan2_t);
-                breakwall_TOAs[2] = Breakwall(chan2_t,THD,0) * tADC;
+                breakwall_TOAs[2] = Breakwall(chan2_t,THD,0) / fADC;
                 breakwall_tDs[2] = breakwall_TOAs[1] - breakwall_TOAs[2];
-                XC_Bounded(chan1_t,chan2_t,iBound);// Where is the return argument going?
+                XCorrBounded(chan1_t,chan2_t,lagBounds, XCorr1x_Lags, XCorr1x);
                 localMaxima(XC1x);// Where is the return argument going?
                 td2 = Compare(breakwall_tDs[2], XC_tDs);
 
-                TDOA_FFT(t,chan3_t,chanx_f);
+                FFT(t,chan3_t,chanx_f);
                 for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i]; }
-                TDOA_iFFT(f,chanx_f,chan3_t);
-                breakwall_TOAs[3] = Breakwall(chan3_t,THD,0) * tADC;
+                iFFT(f,chanx_f,chan3_t);
+                breakwall_TOAs[3] = Breakwall(chan3_t,THD,0) / fADC;
                 breakwall_tDs[3] = breakwall_TOAs[1] - breakwall_TOAs[3];
-                XC_Bounded(chan1_t,chan3_t,iBound);// Where is the return argument going?
+                XCorrBounded(chan1_t,chan3_t,lagBounds, XCorr1x_Lags, XCorr1x);
                 localMaxima(XC1x);// Where is the return argument going?
                 td3 = Compare(breakwall_tDs[3], XC_tDs);
 
-                TDOA_FFT(t,chan4_t,chanx_f);
+                FFT(t,chan4_t,chanx_f);
                 for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i]; }
-                TDOA_iFFT(f,chanx_f,chan4_t);
-                breakwall_TOAs[4] = Breakwall(chan4_t,THD,0) * tADC;
+                iFFT(f,chanx_f,chan4_t);
+                breakwall_TOAs[4] = Breakwall(chan4_t,threshold,0) / fADC;
                 breakwall_tDs[4] = breakwall_TOAs[1] - breakwall_TOAs[4];
-                XC_Bounded(chan1_t,chan4_t,iBound);// Where is the return argument going?
-                localMaxima(XC1x);// Where is the return argument going?
+                XCorrBounded(chan1_t,chan4_t,lagBounds, XCorr1x_Lags, XCorr1x);
+                localMaxima(XC1x, );// Where is the return argument going?
                 td4 = Compare(breakwall_tDs[4], XC_tDs);
 
-                TOA = CalcTOA();
-                CalcSphereRadii();
-                CalcPingerLoc();
-                CalcPingerAzimuths();
-                Delay(PRT);
-            }
-        }
+                CalcPingerLoc(td2, td3, td4, TOA, vP, pingerLoc);
 
+                // Checking for pingerLoc complex solutions
+                if ( cimag(pingerLoc[1]) == 0 && cimag(pingerLoc[2]) && cimag(pingerLoc[3]) == 0 ) {
+
+                    CalcPingerAzimuths(pingerLoc, azimuthH, azimuthV1, azimuthV2);
+
+                    if ( medianCounter % (medianSize+1) == 0 ) { medianCounter = 1; }
+                    else;
+
+                    azimuthHArray [medianCounter] = azimimuthH;
+                    azimuthV1Array[medianCounter] = azimimuthV1;
+                    azimuthV2Array[medianCounter] = azimimuthV2;
+
+                    azimuthH  = Median(azimuthHArray);
+                    azimuthV1 = Median(azimuthV1Array);
+                    azimuthV2 = Median(azimuthV2Array);
+
+                    printf("\nAzimuthA = %f\tAzimuthV1 = %f\tAzimuthV2 = %f", azimuthH, azimuthV1, azimuthV2);
+
+                    medianCounter++;
+                }
+                else;
+            }
+            else;
+        }
         else;
+
+        Delay(PRT);
     }
 */
 	return 0;

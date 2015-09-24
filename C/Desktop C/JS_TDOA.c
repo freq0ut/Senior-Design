@@ -40,6 +40,11 @@ void PingerLocation (double d, double* sphericalRadii, double* pingerLocation) {
     //
     // Notes: I might have messed up the formula for the 3rd argument.
 
+    sphericalRadii[1] = vp*(toa);
+    sphericalRadii[2] = vp*(toa+td2);
+    sphericalRadii[3] = vp*(toa+td3);
+    sphericalRadii[4] = vp*(toa+td4);
+
     pingerLocation[1] = (     pow(sphericalRadii[4],2) - pow(sphericalRadii[2],2) ) / (4.0*d);
     pingerLocation[2] = (     pow(sphericalRadii[3],2) - pow(sphericalRadii[1],2) ) / (4.0*d);
     pingerLocation[3] = sqrt( pow(sphericalRadii[2],2) - pow(sphericalRadii[1],2) - pow(sphericalRadii[2]-d,2) );
@@ -58,10 +63,7 @@ void SphereRadii (double td2, double td3, double td4, double toa, double vp, dou
     //
     // Notes: NONE!
 
-    sphericalRadii[1] = vp*(toa);
-    sphericalRadii[2] = vp*(toa+td2);
-    sphericalRadii[3] = vp*(toa+td3);
-    sphericalRadii[4] = vp*(toa+td4);
+    
 
     return;
 }
