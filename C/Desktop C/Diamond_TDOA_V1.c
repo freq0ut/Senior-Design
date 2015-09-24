@@ -103,8 +103,7 @@ static const double halfChan = 5.0E+3;  // Channel Half-Width [Hz]
 
 // FFT
 static const int N0 = 1024;         // Frame Size [samples]
-static const double T0 = N0/fADC;   // Truncation Time Period [s]
-static const double f0 = 1.0/T0;    // Frequency Resolution [Hz]
+static const double f0 = fADC/N0;    // Frequency Resolution [Hz]
 
 // Pinger
 static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz] THIS MAY BECOME A VARIABLE
@@ -116,65 +115,60 @@ static const double D = lambda;                     // Hydrophone Spacing [m]
 static const double d = lambda/1.414213562373095;   // For System of Coordinates [m]
 
 // Processor
-static const int medianSize = 10;   // For Taking Medians of Azimuths
+static const int medianSize = 10;       // For Taking Medians of Azimuths
+static const double threshold = 0.5;    // Y-Bar of the top lobe of a Sine?
 
 // XCorr
 static const int lagBounds = (int) (D*fADC/vP+1);   // XCorr boundary limits
 static const int pkCounterMax = (int) (D/lambda+1); // Max number of peaks for Max(XCorr)
 
+int main (void) {
 /////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////// VARIABLE DECLARATION AND INITIALIZATION ////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-// FFT
-double powerx_f;                        // Power [W] (for adjusting PGA)
-double f[1+N0] = {N0};                  // Double-Sided Frequency Vector
-double complex chanx_f[1+N0] = {N0};    // Chanx in Frequency Domain
-double complex H[1+N0] = {N0};          // Ideal Bandpass Filter
+    // FFT
+    double power1;                          // Channel 1 Power [W] (for adjusting PGA)
+    double f[1+N0] = {N0};                  // Double-Sided Frequency Vector
+    double complex chanx_f[1+N0] = {N0};    // Chanx in Frequency Domain
+    double complex H[1+N0] = {N0};          // Ideal Bandpass Filter
 
-// Pinger
-int pingerSynced = FALSE;               // Processor Initially Unsynchonized
-double PRT = 0.5;                       // Pinger Pulse-Repetitive-Period [s]
-double complex pingerLoc[1+3] = {3};    // Pinger Location Co-ordinates
+    // Pinger
+    int pingerSynced = FALSE;
+    double PRT = 0.5;                       // Pinger Pulse-Repetitive-Period [s]
+    double complex pingerLoc[1+3] = {3};    // Pinger Location Co-ordinates
 
-// TDOA
-double azimuthH;    // Single horizontal azimuth estimate [deg]
-double azimuthV1;   // Single vertical azimuth 1 estimate [deg]
-double azimuthV2;   // Single vertical azimuth 2 estimate [deg]
-double tD2;         // Channel 2 Time Delay [s]
-double tD3;         // Channel 3 Time Delay [s]
-double tD4;         // Channel 4 Time Delay [s]
-double TOA;         // Time-of-Arrival [s]
-double azimuthHArray [1+medianSize] = {medianSize}; // Array of previous horizontal azimuth estimates
-double azimuthV1Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 1 estimates
-double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
-double breakwall_tDs [1+4] = {4,0}; // Breakwall Time Delays
-double breakwall_TOAs[1+4] = {4};   // Breakwall Time-of-Arrivals
-double sphereRadii[1+4] = {4};      // Sphere Radii (multilateration)
+    // TDOA
+    double azimuthH;    // Single horizontal azimuth estimate [deg]
+    double azimuthV1;   // Single vertical azimuth 1 estimate [deg]
+    double azimuthV2;   // Single vertical azimuth 2 estimate [deg]
+    double tD2;         // Channel 2 Time Delay [s]
+    double tD3;         // Channel 3 Time Delay [s]
+    double tD4;         // Channel 4 Time Delay [s]
+    double TOA;         // Time-of-Arrival [s]
+    double azimuthHArray [1+medianSize] = {medianSize}; // Array of previous horizontal azimuth estimates
+    double azimuthV1Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 1 estimates
+    double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
+    double breakwall_tDs [1+4] = {4,0}; // Breakwall Time Delays
+    double breakwall_TOAs[1+4] = {4};   // Breakwall Time-of-Arrivals
+    double sphereRadii[1+4] = {4};      // Sphere Radii (multilateration)
 
-// Time Sampled Data
-double t[1+N0] = {N0};          // Time Vector
-double chan1_t[1+N0] = {N0};    // Channel 1 Time Sampled Data
-double chan2_t[1+N0] = {N0};    // Channel 2 Time Sampled Data
-double chan3_t[1+N0] = {N0};    // Channel 3 Time Sampled Data
-double chan4_t[1+N0] = {N0};    // Channel 4 Time Sampled Data
+    // Time Sampled Data
+    double t[1+N0] = {N0};          // Time Vector
+    double chan1_t[1+N0] = {N0};    // Channel 1 Time Sampled Data
+    double chan2_t[1+N0] = {N0};    // Channel 2 Time Sampled Data
+    double chan3_t[1+N0] = {N0};    // Channel 3 Time Sampled Data
+    double chan4_t[1+N0] = {N0};    // Channel 4 Time Sampled Data
 
-// XCorr
-int XCorr1x_Lags[1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlation lags
-double XCorr1x  [1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlations
-double XCorr_tDs[1+pkCounterMax] = {pkCounterMax};      // Cross-correlation Time Delays
-
-/////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-
-int main (void){
+    // XCorr
+    int XCorr1x_Lags[1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlation lags
+    double XCorr1x  [1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlations
+    double XCorr_tDs[1+pkCounterMax] = {pkCounterMax};      // Cross-correlation Time Delays
 
     // Constructing Double-Sided Frequency Vector
     for (int i = 1; i <= N0; i++) {
         f[i] = -N0/2 + (i-1);
         f[i] = f0 * f[i];
-        printf("\tf[%d] = %f", i, f[i]);
     }
 
     // Constructing Ideal Digital Bandpass Filter
@@ -191,48 +185,73 @@ int main (void){
     for (int i = 1; i <= N0; i++) {
         t[i] = (i-1)/fADC;
     }
+
+/////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////
 /*
-    while (1) {
+    while (TRUE) {
 
-        if ( pingerSynced == 0 ) {
-            SampleADC();// Output goes to chan1_t, chan2_t, chan3_t, chan4_t
-            TDOA_FFT(t,chan1_t,chanx_f);
-            powerx_f = Power_f(f,chanx_f);
+        if ( pingerSynced == FALSE ) {
+            SampleChan1(chan1_t);
+            FFT(t,chan1_t,chanx_f);
+            power1 = SignalPower(f,chanx_f);
 
-            if      (powerx_f >= powerMax) { decreasePGA(); }
-            else if (powerx_f <= powerMin) { increasePGA(); }
+            // Adjust PGA
+            if (power1 >= powerMax) {
+                decreasePGA();
+            }
+            else if (power1 <= powerMin) {
+                increasePGA();
+            }
             else;
 
             // Bandpass Filtering
-            for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i];}
+            for (int i=1; i <= N0; i++) {
+                chanx_f[i] = chanx_f[i] * H[i];
+            }
 
-            TDOA_iFFT(f,chanx_f,chan1_t);
-            syncPinger();
+            iFFT(f,chanx_f,chan1_t);
+            PRT = syncPinger();
             Delay(PRT);
         }
 
-        else if ( pingerSynced == 1 ) {
-            SampleADC();// Output goes to chan1_t, chan2_t, chan3_t, chan4_t
-            TDOA_FFT(t,chan1_t,chanx_f);
-            powerx_f = Power_f(f,chanx_f);
+        else if ( pingerSynced == TRUE ) {
+            SampleAllChans(chan1_t, chan2_t, chan3_t, chan4_t);
+            FFT(t,chan1_t,chanx_f);
+            power1 = SignalPower(f,chanx_f);
 
-            if      (powerx_f >= powerMax) { decreasePGA(); }
-            else if (powerx_f <= powerMin) { increasePGA(); }
+            // Adjust PGA
+            if (powerx_f >= powerMax) {
+                decreasePGA();
+            }
+            else if (powerx_f <= powerMin) {
+                increasePGA();
+            }
             else;
 
-            for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i]; }
+            // Bandpass Filtering
+            for (int i=1; i <= N0; i++) {
+                chanx_f[i] = chanx_f[i] * H[i];
+            }
 
-            TDOA_iFFT(f,chanx_f,chan1_t);
+            iFFT(f,chanx_f,chan1_t);
             breakwall_TOAs[1] = Breakwall(chan1_t,THD,0) * tADC;
             
             // Resynchronize with the pinger
-            if ( breakwall_TOAs[1] == -1 ) { pingerSynced == 0; }
+            if ( breakwall_TOAs[1] == -1 ) {
+                pingerSynced == FALSE;
+            }
             else;
             
-            if ( pingerSynced == 1 ) {
-                TDOA_FFT(t,chan2_t,chanx_f);
-                for (int i=1; i <= H[0]; i++) { chanx_f[i] = chanx_f[i] * H[i]; }
-                TDOA_iFFT(f,chanx_f,chan2_t);
+            if ( pingerSynced == TRUE ) {
+                FFT(t,chan2_t,chanx_f);
+                
+                for (int i=1; i <= H[0]; i++) {
+                    chanx_f[i] = chanx_f[i] * H[i];
+                }
+
+                iFFT(f,chanx_f,chan2_t);
                 breakwall_TOAs[2] = Breakwall(chan2_t,THD,0) * tADC;
                 breakwall_tDs[2] = breakwall_TOAs[1] - breakwall_TOAs[2];
                 XC_Bounded(chan1_t,chan2_t,iBound);// Where is the return argument going?
@@ -274,4 +293,3 @@ int main (void){
 /////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////// END OF PROGRAM ////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-

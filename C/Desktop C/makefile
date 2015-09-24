@@ -1,7 +1,8 @@
+INC_DIR=/Users/betio32/Desktop/myPrograms/myC/myLibraries/js_cmath
 CC=gcc
-CFLAGS=-I.
-DEPS = js_cmath.h js_tdoa.h
-OBJ = Diamond_TDOA_V1.o js_cmath.o js_tdoa.o
+CFLAGS=-I$(INC_DIR)
+DEPS = $(INC_DIR)/js_cmath.h js_tdoa.h
+OBJ = $(INC_DIR)/js_cmath.o js_tdoa.o Diamond_TDOA_V1.o
 
 %.o: %.c $ (DEPS)
 	$(CC) -c -o $@ $& $< $(CFLAGS)
@@ -11,6 +12,6 @@ diamondTDOA: $(OBJ)
 
 .PHONY: clean
 clean:
-	$(RM) *.o
+	$(RM) *.o $(INC_DIR)/*.o
 	$(RM) js_cmath js_tdoa Diamond_TDOA_V1 diamondTDOA
-	$(RM) *~
+	$(RM) *~ $(INC_DIR)/*~

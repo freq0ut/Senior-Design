@@ -17,9 +17,9 @@ void PingerAzimuths (double* pingerLocation, double* azimuth1, double* azimuth2,
     *azimuth3 = atan2(-1*pingerLocation[3],pingerLocation[1]);
 
     // Wrapping angle [0,2pi]
-    *azimuth1 = WrapTo2Pi(azimuth1);
-    *azimuth2 = WrapTo2Pi(azimuth2);
-    *azimuth3 = WrapTo2Pi(azimuth3);
+    *azimuth1 = WrapTo2Pi(*azimuth1);
+    *azimuth2 = WrapTo2Pi(*azimuth2);
+    *azimuth3 = WrapTo2Pi(*azimuth3);
     
     // Converting to degrees
     *azimuth1 = (*azimuth1) * (180.0/pi);
