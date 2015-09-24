@@ -50,7 +50,7 @@
 *			E. iFFT
 *			F. Pinger synchronized
 *				i.  Pulse-Repetitive-Period estimated
-						a. PRT adjusted
+*                       a. PRT adjusted
 *				ii. Heads centered in frame window
 *						a. PRT adjusted
 *		3. All 4 channels sampled and azimuth to source estimated
@@ -93,98 +93,76 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // ADC
-static const double fADC = 1800.0E+3;// ADC Sampling Frequency [Hz]
-static const double powerMax = 10.0;// Maximum Signal Power [W]
-static const double powerMin =  1.0;// Minimum Signal Power [W]
+static const double fADC = 1800.0E+3;   // ADC Sampling Frequency [Hz]
+static const double powerMax = 10.0;    // Maximum Signal Power [W]
+static const double powerMin =  1.0;    // Minimum Signal Power [W]
 
 // Bandpass Filter
-static const double fCenter = 30.0E+3;// Center Frequency [Hz]
-static const double halfChan = 5.0E+3;// Channel Half-Width [Hz]
+static const double fCenter = 30.0E+3;  // Center Frequency [Hz]
+static const double halfChan = 5.0E+3;  // Channel Half-Width [Hz]
 
-// Hydrophone
-static const double vP = 1482.0;// Velocity of Propagation [m/s]
+// FFT
+static const double T0 = N0/fADC;   // Truncation Time Period [s]
+static const double f0 = 1.0/T0;    // Frequency Resolution [Hz]
 
 // Pinger
-static const double fPinger = 37.0E+3;// Pinger Frequency [Hz] THIS MAY BECOME A VARIABLE
+static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz] THIS MAY BECOME A VARIABLE
+
+// Hydrophones
+static const double vP = 1482.0;                    // Velocity of Propagation [m/s]
+static const double lambda = vP/fPinger;            // Wavelength [m]
+static const double D = lambda;                     // Hydrophone Spacing [m]
+static const double d = lambda/1.414213562373095;   // For System of Coordinates [m]
 
 // Processor
-static const int medianSize = 10;// For Taking Medians of Azimuths
-static const int N0 = 1024;// Frame Size [samples]
+static const int medianSize = 10;   // For Taking Medians of Azimuths
+static const int N0 = 1024;         // Frame Size [samples]
+
+// XCorr
+static const int lagBounds = (int) (D*fADC/vP+1);   // XCorr boundary limits
+static const int pkCounterMax = (int) (D/lambda+1); // Max number of peaks for Max(XCorr)
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////// VARIABLE DECLARATIONS //////////////////////////////////
+//////////////////////// VARIABLE DECLARATION AND INITIALIZATION ////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-
-// ADC
-double tADC;// ADC Sampling Period [s]
 
 // FFT
-double f0, powerx_f, T0;// Frequency Resolution [Hz], Power [W], Truncation Time Interval [s]
-double f[1+N0];// Double-Sided Frequency Vector
-double complex chanx_f[1+N0], H[1+N0];
-
-// Hydrophones
-double d,D,lambda;// Sensor Spacing [m], Wavelength[m]
+double powerx_f;                        // Power [W] (for adjusting PGA)
+double f[1+N0] = {N0};                  // Double-Sided Frequency Vector
+double complex chanx_f[1+N0] = {N0};    // Chanx in Frequency Domain
+double complex H[1+N0] = {N0};          // Ideal Bandpass Filter
 
 // Pinger
-int pingerSynced;// Is the pinger synchronized?
-double PRT;// Pinger Pulse-Repetitive-Period [s]
-double complex pingerLoc[1+3];// Pinger Location Co-ordinates
+int pingerSynced = FALSE;               // Processor Initially Unsynchonized
+double PRT = 0.5;                       // Pinger Pulse-Repetitive-Period [s]
+double complex pingerLoc[1+3] = {3};    // Pinger Location Co-ordinates
+
+// TDOA
+double azimuthH;    // Single horizontal azimuth estimate [deg]
+double azimuthV1;   // Single vertical azimuth 1 estimate [deg]
+double azimuthV2;   // Single vertical azimuth 2 estimate [deg]
+double tD2;         // Channel 2 Time Delay [s]
+double tD3;         // Channel 3 Time Delay [s]
+double tD4;         // Channel 4 Time Delay [s]
+double TOA;         // Time-of-Arrival [s]
+double azimuthHArray [1+medianSize] = {medianSize}; // Array of previous horizontal azimuth estimates
+double azimuthV1Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 1 estimates
+double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
+double breakwall_tDs [1+4] = {4,0}; // Breakwall Time Delays
+double breakwall_TOAs[1+4] = {4};   // Breakwall Time-of-Arrivals
+double sphereRadii[1+4] = {4};      // Sphere Radii (multilateration)
 
 // Time Sampled Data
-double t[1+N0];// Single-sided Time Vector
-double chan1_t[1+N0];// Channel 1 Time Sampled Data
-double chan2_t[1+N0];// Channel 2 Time Sampled Data
-double chan3_t[1+N0];// Channel 3 Time Sampled Data
-double chan4_t[1+N0];// Channel 4 Time Sampled Data
+double t[1+N0] = {N0};          // Time Vector
+double chan1_t[1+N0] = {N0};    // Channel 1 Time Sampled Data
+double chan2_t[1+N0] = {N0};    // Channel 2 Time Sampled Data
+double chan3_t[1+N0] = {N0};    // Channel 3 Time Sampled Data
+double chan4_t[1+N0] = {N0};    // Channel 4 Time Sampled Data
 
-// TDOA
-double azimuthH, azimuthV1, azimuthV2, tD2, tD3, tD4, TOA;// Azimuths, Time Delays, Time-of-Arrivals
-double azimuthHArray[1+medianSize], azimuthV1Array[1+medianSize],azimuthV2Array[1+medianSize];
-double breakwall_tDs[1+4], breakwall_TOAs[1+4], sphereRadii[1+4];
-// XC_tDs declared below, size dependent on peakCounterMax
-
-// XCs
-int iBound, peakCounterMax;// Bounds for XC, Max Number of XC Peaks
-// XC declared below, size dependent on iBound
-
-/////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////// VARIABLE INITIALIZATIONS /////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////
-
-// ADC
-tADC = 1.0/fADC;
-
-// FFT
-T0 = N0*tADC;
-f0 = 1.0/T0;
-f[0] = chanx_f[0] = H[0] = N0;
-
-// Hydrophones
-lambda = vP/fPinger;
-D = lambda;
-d = D/sqrt(2.0);
-
-// Pinger
-pingerSynced = 0;
-PRT = 1.0;
-pingerLoc[0] = 3;
-
-// Time sampled data
-t[0] = chan1_t[0] = chan2_t[0] = chan3_t[0] = chan4_t[0] = N0;
-
-// TDOA
-azimuthHArray[0] = azimuthV1Array[0] = azimuthV2Array[0] = medianSize;
-breakwall_tDs[0] = breakwall_TOAs[0] = sphereRadii[0] = 4;
-breakwall_tDs[1] = 0;
-double XC_tDs[1+peakCounterMax];// Cross-correlation Time Delays
-XC_tDs[0] = peakCounterMax;
-
-// XCs
-iBound = (int) (D/(vP*tADC)+1);
-peakCounterMax = (int) (D/lambda+1);
-double XC1x[1+(2*iBound+1)];// Cross-correlations
-XC1x[0] = 2*iBound+1;
+// XCorr
+int XCorr1x_Lags[1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlation lags
+double XCorr1x  [1+(2*lagBounds+1)] = {2*lagBounds+1};  // Cross-correlations
+double XCorr_tDs[1+pkCounterMax] = {pkCounterMax};      // Cross-correlation Time Delays
 
 /////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
@@ -193,19 +171,26 @@ XC1x[0] = 2*iBound+1;
 int main (void){
 
     // Constructing Double-Sided Frequency Vector
-    for (int i = 1; i <= f[0]; i++) { f[i] = f0*(-N0/2+(i-1)); }
+    for (int i = 1; i <= N0; i++) {
+        f[i] = -N0/2 + (i-1);
+        f[i] = f0 * f[i];
+    }
 
     // Constructing Ideal Digital Bandpass Filter
-    for (int i = 1; i <= H[0]; i++) {
-        if ( abs(f[i]) >= fCent-halfChan && abs(f[i]) <= fCent+halfChan )
-            { H[i] = 1.0; }
-        else
-            { H[i] = 0.0; }
+    for (int i = 1; i <= N0; i++) {
+        if ( abs(f[i]) >= fCent-halfChan && abs(f[i]) <= fCent+halfChan ) {
+            H[i] = 1.0;
+        }
+        else {
+            H[i] = 0.0;
+        }
     }
 
     // Constructing Time Vector
-    for (int i = 1; i <= t[0]; i++) { t[i] = (i-1)*tADC; }
-
+    for (int i = 1; i <= N0; i++) {
+        t[i] = (i-1)/fADC;
+    }
+/*
     while (1) {
 
         if ( pingerSynced == 0 ) {
@@ -281,7 +266,7 @@ int main (void){
 
         else;
     }
-
+*/
 	return 0;
 }
 
