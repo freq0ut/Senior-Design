@@ -102,6 +102,7 @@ static const double fCenter = 30.0E+3;  // Center Frequency [Hz]
 static const double halfChan = 5.0E+3;  // Channel Half-Width [Hz]
 
 // FFT
+static const int N0 = 1024;         // Frame Size [samples]
 static const double T0 = N0/fADC;   // Truncation Time Period [s]
 static const double f0 = 1.0/T0;    // Frequency Resolution [Hz]
 
@@ -116,7 +117,6 @@ static const double d = lambda/1.414213562373095;   // For System of Coordinates
 
 // Processor
 static const int medianSize = 10;   // For Taking Medians of Azimuths
-static const int N0 = 1024;         // Frame Size [samples]
 
 // XCorr
 static const int lagBounds = (int) (D*fADC/vP+1);   // XCorr boundary limits
@@ -174,11 +174,12 @@ int main (void){
     for (int i = 1; i <= N0; i++) {
         f[i] = -N0/2 + (i-1);
         f[i] = f0 * f[i];
+        printf("\tf[%d] = %f", i, f[i]);
     }
 
     // Constructing Ideal Digital Bandpass Filter
     for (int i = 1; i <= N0; i++) {
-        if ( abs(f[i]) >= fCent-halfChan && abs(f[i]) <= fCent+halfChan ) {
+        if ( abs(f[i]) >= fCenter-halfChan && abs(f[i]) <= fCenter+halfChan ) {
             H[i] = 1.0;
         }
         else {
