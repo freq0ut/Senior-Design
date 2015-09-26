@@ -4,7 +4,7 @@ CFLAGS=-I$(INC_DIR)
 DEPS = $(INC_DIR)/js_cmath.h js_tdoa.h
 OBJ = $(INC_DIR)/js_cmath.o js_tdoa.o Diamond_TDOA_V1.o
 
-%.o: %.c $ (DEPS)
+%.o: %.c $(DEPS)
 	$(CC) -c -o $@ $& $< $(CFLAGS)
 
 diamondTDOA: $(OBJ)
