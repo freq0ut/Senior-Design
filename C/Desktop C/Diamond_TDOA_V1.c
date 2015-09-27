@@ -97,7 +97,7 @@ static const double powerMin =  1.0;  // Minimum Signal Power [W]
 static const double powerMax = 10.0;  // Maximum Signal Power [W]
 
 // Azimuths
-static const int medianSize = 10; // For Taking Medians of Azimuths
+static const int medianSize = 10; // Azimuths and SyncPinger()
 
 // Bandpass Filter
 static const double fCenter = 30.0E+3; // Center Frequency [Hz]
@@ -119,7 +119,7 @@ static const double D = lambda; // Hydrophone Spacing [m]
 static const double d = D/1.414213562373095; // For System of Coordinates [m]
 
 // Time Delays
-static const double threshold = 0.5; // Y-Bar of the top lobe of a Sine?
+static const double threshold = 0.5; // CalcTimeDelay() and CenterWindow()
 static const int lagBounds = (int) (D*fADC/vP+1);   // XCorr boundary limits
 static const int pkCounterMax = (int) (D/lambda+1); // Max number of peaks for Max(XCorr)
 
@@ -143,10 +143,10 @@ int main (void) {
     double azimuthH  = 0.0; // Single horizontal azimuth estimate [deg]
     double azimuthV1 = 0.0; // Single vertical azimuth 1 estimate [deg]
     double azimuthV2 = 0.0; // Single vertical azimuth 2 estimate [deg]
-    double tD2 = 0.0; // Channel 2 Time Delay [s]
-    double tD3 = 0.0; // Channel 3 Time Delay [s]
-    double tD4 = 0.0; // Channel 4 Time Delay [s]
-    double TOA = 0.0; // Time-of-Arrival [s]
+    double tD2 = 0.0;  // Channel 2 Time Delay [s]
+    double tD3 = 0.0;  // Channel 3 Time Delay [s]
+    double tD4 = 0.0;  // Channel 4 Time Delay [s]
+    double TOA1 = 0.0; // Time-of-Arrival for Channel 1 [s]
     double azimuthHArray [1+medianSize] = {medianSize}; // Array of previous horizontal azimuth estimates
     double azimuthV1Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 1 estimates
     double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
@@ -231,10 +231,9 @@ int main (void) {
             }
 
             iFFT(chanx_f,chan1_t);
-            CenterWindow(chan1_t, pingerSynced, PRT);   // Fine adjusting PRT
-            
+            CenterWindow(chan1_t, N0, fADC, threshold, pingerSynced, PRT, TOA1);   // Fine adjusting PRT
             // Resynchronize with the pinger
-            if ( breakwall_TOAs[1] == -1 ) { pingerSynced == FALSE; }
+            if ( TOA1 < 0 ) { pingerSynced == FALSE; }
             else;
             
             if ( pingerSynced == TRUE ) {
@@ -252,7 +251,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan2_t);
 
-                tD2 = CalcTimeDelay(chan2_t, THD, lagBounds, pkCounterMax);
+                tD2 = CalcTimeDelay(chan2_t, THD, TOA1, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CHANNEL 3 TIME DELAY //////////////////////////////////
@@ -288,7 +287,7 @@ int main (void) {
                 ///////////////////////////////// CALCULATING AZIMUTHS //////////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
-                CalcDiamondPingerLocation(td2, td3, td4, TOA, vP, pingerLocs);
+                CalcDiamondPingerLocation(d, td2, td3, td4, TOA, vP, pingerLocs);
 
                 // Checking for complex pinger coordinates
                 if ( cimag(pingerLoc[1]) == 0 && cimag(pingerLoc[2]) && cimag(pingerLoc[3]) == 0 ) {
