@@ -1,16 +1,18 @@
 #include "js_tdoa.h"
 
 void AdjustPGA (double* f, double _Complex* chanx_f, double powerMin, double powerMax) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description: Calculates the signal power and adjusts the gain of the ADC PGA accordingly.
-    //
-    // Status: INCOMPLETE
-    //
-    // Notes:
-    //      1. Will have to wait until familarization with ADC to be implemented.
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description: Calculates the signal power and adjusts the gain of the ADC PGA accordingly.
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. Will have to wait until familarization with ADC to be implemented.
+    */
 
     double power = 0.0;
 
@@ -28,15 +30,18 @@ void AdjustPGA (double* f, double _Complex* chanx_f, double powerMin, double pow
 }
 
 void CalcPingerAzimuths(double* pingerLocs, double* azimuthH, double* azimuthV1, double* azimuthV2) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     /*
     // Determining pinger azimuths in radians
@@ -59,15 +64,18 @@ void CalcPingerAzimuths(double* pingerLocs, double* azimuthH, double* azimuthV1,
 }
 
 void CalcDiamondPingerLocation(double td2, double td3, double td4, double TOA, double vP, double* pingerLocs){
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes: I might have messed up the formula for the 3rd argument.
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     /*
     sphericalRadii[1] = vp*(toa);
@@ -84,15 +92,18 @@ void CalcDiamondPingerLocation(double td2, double td3, double td4, double TOA, d
 }
 
 double CalcTimeDelay (double* chan2_t, double THD, int lagBounds, int pkCounterMax) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     /*
     breakwall_TOAs[2] = Breakwall(chan2_t,THD,0) / fADC;
@@ -113,15 +124,18 @@ double CalcTimeDelay (double* chan2_t, double THD, int lagBounds, int pkCounterM
 }
 
 void CenterWindow (double* chan1_t, int* pingerSynced, double* PRT) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     // breakwall_TOAs[1] = Breakwall(chan1_t,threshold,0) / fADC;
 
@@ -129,43 +143,52 @@ void CenterWindow (double* chan1_t, int* pingerSynced, double* PRT) {
 }
 
 void DelaySampleTrigger(double PRT) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     return;
 }
 
 void SampleAllChans (double fADC, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     return;
 }
 
 void SyncPinger (double* chan1_t, int* pingerSynced, double* PRT) {
-    // Author: Joshua Simmons
-    //
-    // Date: September 2015
-    //
-    // Description:
-    //
-    // Status:
-    //
-    // Notes:
+    /*
+    * Author: Joshua Simmons
+    *
+    * Date: September 2015
+    *
+    * Description:
+    *
+    * Status: INCOMPLETE
+    *
+    * Notes:
+    *   1. 
+    */
 
     return;
 }

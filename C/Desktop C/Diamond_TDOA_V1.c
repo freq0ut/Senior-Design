@@ -190,6 +190,12 @@ int main (void) {
 ////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
+// Inserting simulated data
+// ReadCSV(fileName,chan1t);
+// ReadCSV(fileName,chan2t);
+// ReadCSV(fileName,chan3t);
+// ReadCSV(fileName,chan4t);
+
     while (TRUE) {
 
         if ( pingerSynced == FALSE ) {
@@ -299,7 +305,7 @@ int main (void) {
                     azimuthV1Array[medianCounter] = azimimuthV1;
                     azimuthV2Array[medianCounter] = azimimuthV2;
 
-                    azimuthH  = Median(azimuthHArray);
+                    azimuthH  = Median(azimuthHArray);  // fix bug Median() overwrites
                     azimuthV1 = Median(azimuthV1Array);
                     azimuthV2 = Median(azimuthV2Array);
 
