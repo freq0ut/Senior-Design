@@ -76,7 +76,8 @@
 *
 *   Programming Conventions:
 *       1. All arrays have their size stored in their zeroth element.
-*           Example: int myArray[1+10] = {10,1,2,3,4,5,6,7,8,9,10}; 
+*           Example: int myArray[1+10] = {10,1,2,3,4,5,6,7,8,9,10};
+*       2. All units are elemental metric unless specified otherwise. [s], [m], [Hz], etc.
 */
 
 #include "js_tdoa.h"
@@ -92,40 +93,33 @@
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // ADC
-static const double fADC = 1800.0E+3; // ADC Sampling Frequency [Hz]
-static const double powerMin =  1.0;  // Minimum Signal Power [W]
-static const double powerMax = 10.0;  // Maximum Signal Power [W]
+static const double fADC = 1800.0E+3;// ADC Sampling Frequency [Hz]
+static const double powerMin =  1.0;// Minimum Signal Power [W]
+static const double powerMax = 10.0;// Maximum Signal Power [W]
 
 // Azimuths
-static const int medianSize = 10; // Azimuths only.
+static const int medianSize = 10;// Azimuths only
 
 // Bandpass Filter
-static const double fCenter = 30.0E+3; // Center Frequency [Hz]
-static const double halfChan = 5.0E+3; // Channel Half-Width [Hz]
+static const double fCenter = 30.0E+3;// Center Frequency [Hz]
+static const double halfChan = 5.0E+3;// Channel Half-Width [Hz]
 
 // FFT
-static const int N0 = 1024; // Frame Size [samples]
-static const double f0 = fADC/N0; // Frequency Resolution [Hz]
+static const int N0 = 1024;// Frame Size [samples]
+static const double f0 = fADC/N0;// Frequency Resolution [Hz]
 
 // Pinger
-static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz]
-//  fPinger may become a variable that can be determined by the FFT.
-//  The constant declared here my become fPingerFloor.
-// fPingerMin
-// PRT_Min
-// PRT_Max
-static const double tPW_Min = 1.3E-3; // Minimal expected pulse width
+static const double fPingerMin = 20.0E+3;// Lowest Possible Pinger Frequency [Hz]
+                                         // fPinger determined by SyncPinger()
+static const double tPW_Min = 1.3E-3;// Minimal expected pulse width [s]
 
 // Hydrophones
-static const double vP = 1482.0; // Velocity of Propagation [m/s]
-static const double lambda = vP/fPinger; // Wavelength [m]
-static const double D = lambda; // Hydrophone Spacing [m]
-static const double d = D/1.414213562373095; // For System of Coordinates [m]
+static const double vP = 1482.0;// Velocity of Propagation [m/s]
+static const double D = 0.10;// Hydrophone Spacing [m]
+static const double d = D/1.414213562373095;// For System of Coordinates [m]
 
 // Time Delays
-static const double threshold = 0.5; // CalcTimeDelay() and CenterWindow()
-static const int lagBounds = (int) (D*fADC/vP+1);   // XCorr boundary limits
-static const int pkCounterMax = (int) (D/lambda+1); // Max number of peaks for Max(XCorr)
+static const double threshold = 0.5;// CalcTimeDelay() and CenterWindow()
 
 int main (void) {
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -133,13 +127,13 @@ int main (void) {
 /////////////////////////////////////////////////////////////////////////////////////////
 
     // FFT
-    double f[1+N0] = {N0}; // Double-Sided Frequency Vector
-    double _Complex chanx_f[1+N0] = {N0}; // Chanx in Frequency Domain
-    double _Complex H[1+N0] = {N0};       // Ideal Bandpass Filter
+    double f[1+N0] = {N0};// Double-Sided Frequency Vector
+    double _Complex chanx_f[1+N0] = {N0};// Chanx in Frequency Domain
+    double _Complex H[1+N0] = {N0};// Ideal Bandpass Filter
 
     // Pinger
     int pingerSynced = FALSE;
-    double pingerLocs[1+3] = {3,0,0,0};
+    double pingerLocs[1+3] = {3,0,0,0};//Pinger Cartesian coordinates [m]
     double PRT = 0.5;   // Pinger Pulse-Repetitive-Period [s]
                         // This initialized value is a fraction of our best guess of the PRT.
                         // In the algorithm that follows, this value will change for synchronization.

@@ -110,11 +110,14 @@ double CalcTimeDelay (double fADC, int N0, double* chan1_t, double* chanx_t, dou
     *
     *   Description: Computes the time delay for TDOA directional finding via cross-correlation. 
     *
-    *   Status: untested
+    *   Status: incomplete
     *
     *   Notes:
-    *       1. lagBounds may become a variable and placed inside this function. This would happen if fPinger becomes a variable. 
+    *       1. lagBounds may become a variable and placed inside this function. This would happen if fPinger becomes a variable.
     */
+
+    *   static const int lagBounds = (int) (D*fADC/vP+1);// XCorr boundary limits
+    *   static const int pkCounterMax = (int) (D/lambda+1);// Max number of peaks for Max(XCorr)
 
     double tD = 0.0;
     double tD_BW = 0.0;
@@ -204,7 +207,7 @@ void DelaySampleTrigger(double PRT) {
     return;
 }
 
-void SampleAllChans (double fADC, int N0, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
+void SampleAllChans (int simFrame, double fADC, int N0, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
     /*
     *   Author: Joshua Simmons
     *
@@ -214,15 +217,29 @@ void SampleAllChans (double fADC, int N0, double* chan1_t, double* chan2_t, doub
     *
     *   Status: incomplete
     *
-    *   Notes:
-    *       1. How to append file names?
+    *   Notes: NONE!
     */
 
-    // Simulating ADC sampling
-    ReadCSV("/Users/betio32/Desktop/TDOA_Chan1_SimData.CSV",chan1_t);
-    ReadCSV("/Users/betio32/Desktop/TDOA_Chan2_SimData.CSV",chan2_t);
-    ReadCSV("/Users/betio32/Desktop/TDOA_Chan3_SimData.CSV",chan3_t);
-    ReadCSV("/Users/betio32/Desktop/TDOA_Chan4_SimData.CSV",chan4_t);
+    char* chanXSimDataFile = "/Users/betio32/Desktop/TDOA_Chan1_SimDataXXX.CSV";
+
+    int ones = simFrame%1;
+    int tens = simFrame%10;
+    int hundreds = simFrame%100;
+
+    chanXSimDataFile[42] = ones;
+    chanXSimDataFile[41] = tens;
+    chanXSimDataFile[40] = hundreds;
+
+    ReadCSV(simDataFile,chan1_t);
+    
+    chanXSimDataFile[31] = 2;
+    ReadCSV(simDataFile,chan2_t);
+
+    chanXSimDataFile[31] = 3;
+    ReadCSV(simDataFile,chan3_t);
+
+    chanXSimDataFile[31] = 4;
+    ReadCSV(simDataFile,chan4_t);
 
     printf("\nSampled All Channels.");
 
