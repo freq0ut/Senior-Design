@@ -114,6 +114,7 @@ static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz]
 // fPingerMin
 // PRT_Min
 // PRT_Max
+static const double tPW_Min = 1.3E-3; // Minimal expected pulse width
 
 // Hydrophones
 static const double vP = 1482.0; // Velocity of Propagation [m/s]
@@ -187,7 +188,7 @@ int main (void) {
         f[i] = f0 * f[i];
 
         // Constructing Ideal Digital Bandpass Filter
-        if ( abs(f[i]) >= fCenter-halfChan && abs(f[i]) <= fCenter+halfChan ) {
+        if ( cabs(f[i]) >= fCenter-halfChan && cabs(f[i]) <= fCenter+halfChan ) {
             H[i] = 1.0;
         }
         else;
@@ -199,25 +200,16 @@ int main (void) {
 
     while (TRUE) {
 
-        if ( pingerSynced == FALSE ) {
+        if ( pingerSynced == FALSE) {
             /////////////////////////////////////////////////////////////////////////////////////////
             /////////////////////////////////// SYNCHRONIZING WITH PINGER ///////////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
-            SampleAllChans(fADC, chan1_t, chan2_t, chan3_t, chan4_t);
-            FFT(chan1_t,chanx_f);
-            AdjustPGA(f,chanx_f, powerMin, powerMax);
-
-            // Bandpass Filtering Channel 1
-            for (int i=1; i <= N0; i++) {
-                chanx_f[i] = chanx_f[i] * H[i];
-            }
-
-            iFFT(chanx_f,chan1_t);
             SyncPinger(chan1_t, pingerSynced, PRT);
+
         }
 
-        else if ( pingerSynced == TRUE ) {
+        else {
             /////////////////////////////////////////////////////////////////////////////////////////
             ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION ////////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
@@ -317,7 +309,6 @@ int main (void) {
             }
             else;
         }
-        else;
 
         DelaySampleTrigger(PRT);
     }
