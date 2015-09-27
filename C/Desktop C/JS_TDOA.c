@@ -149,10 +149,11 @@ void CenterWindow (double* chan1_t, int N0, double fADC, double threshold, int* 
     *   Notes: NONE! 
     */
 
-    double tCenter = (N0/2+1) / fADC;
+    double tError = 0.0;
 
     char* dir = "LR";
     *TOA1 = BreakWall(dir,chan1_t,threshold) / fADC;
+    tError = (N0/2+1) / fADC - TOA1;
 
     if ( *TOA1 > tCenter ) {
         *PRT -= tError;
