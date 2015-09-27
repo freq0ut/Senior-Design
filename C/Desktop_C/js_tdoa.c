@@ -213,7 +213,7 @@ void SampleAllChans (double fADC, double* chan1_t, double* chan2_t, double* chan
     return;
 }
 
-void SyncPinger (double* chan1_t, int* pingerSynced, double* PRT) {
+void SyncPinger (double fADC, int N0, double fPinger, double threshold, double PRT_Min, double* PRT, int* pingerSynced) {
     /*
     *   Author: Joshua Simmons
     *
@@ -224,6 +224,55 @@ void SyncPinger (double* chan1_t, int* pingerSynced, double* PRT) {
     *   Status: incomplete
     *
     *   Notes: NONE! 
+    */
+
+    // May need to bring everything in here like FFT, iFFT, filtering, adjust PGA, 
+
+    char* dir = "LR";
+    int triggerCount = 0;
+    int triggerCountPRT_Max = 12;
+    double t_Trigger = 0.0;
+    double tLowerBound = 1/(4*fPinger);
+    double tUpperBound = N0/fADC - tLowerBound;
+
+    SampleAllChans(chan1_t,chan2_t,chan3_t,chan4_t);
+
+    t_Trigger = BreakWall(dir,chan1_t,threshold) / fADC;
+
+    if ( t_Trigger > tLowerBound && t_Trigger < tUpperBound ) {
+        triggerCount++;
+
+        // Adjusting PRT
+        if ( triggerCount <= triggerCountPRT_Max ) {
+            PRT_Array[triggerCount] = ?;
+            PRT = Median(PRT_Array);
+        }
+
+        // Centering Window can I re-use CenterWindow()???
+        else {
+
+        }
+
+    }
+    else;
+
+    /*  
+        % The start of the present frame globally
+        tGlobal = tADC*(iGlobal-1);
+        
+        % Adjusting the PRT
+        if (headCount > 1 && headCount < 12)
+           PRT_Array(mod(headCount,10)+1) = tGlobal - tGlobalLast;
+           PRT = median(PRT_Array);
+        end
+                
+        if (headCount < 12) % Delaying by PRT
+            tGlobalLast = tGlobal;
+            tGlobal = tGlobal + PRT;
+        else % Delaying so that the heads are in the center of the frame
+            tError = tHeads - tADC*(frameSize/2);
+            tGlobal = tGlobal + PRT + tError + tPing/4;   
+        end
     */
 
     if ( pingerSynced == FALSE ) {

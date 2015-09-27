@@ -97,7 +97,7 @@ static const double powerMin =  1.0;  // Minimum Signal Power [W]
 static const double powerMax = 10.0;  // Maximum Signal Power [W]
 
 // Azimuths
-static const int medianSize = 10; // Azimuths and SyncPinger()
+static const int medianSize = 10; // Azimuths only.
 
 // Bandpass Filter
 static const double fCenter = 30.0E+3; // Center Frequency [Hz]
