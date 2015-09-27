@@ -111,6 +111,9 @@ static const double f0 = fADC/N0; // Frequency Resolution [Hz]
 static const double fPinger = 37.0E+3;  // Pinger Frequency [Hz]
 //  fPinger may become a variable that can be determined by the FFT.
 //  The constant declared here my become fPingerFloor.
+// fPingerMin
+// PRT_Min
+// PRT_Max
 
 // Hydrophones
 static const double vP = 1482.0; // Velocity of Propagation [m/s]
@@ -136,7 +139,11 @@ int main (void) {
     // Pinger
     int pingerSynced = FALSE;
     double pingerLocs[1+3] = {3,0,0,0};
-    double PRT = 0.5; // Pinger Pulse-Repetitive-Period [s]
+    double PRT = 0.5;   // Pinger Pulse-Repetitive-Period [s]
+                        // This initialized value is a fraction of our best guess of the PRT.
+                        // In the algorithm that follows, this value will change for synchronization.
+                        // Never make this initialized value at or above the actual PRT or else
+                        // the algorithm might delay twice as long as it needs to. 
 
     // TDOA
     int medianCounter = 1;  // For logging single azimuth estimates into their respective arrays.
@@ -189,12 +196,6 @@ int main (void) {
 /////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
-
-// Inserting simulated data
-// ReadCSV(fileName,chan1t);
-// ReadCSV(fileName,chan2t);
-// ReadCSV(fileName,chan3t);
-// ReadCSV(fileName,chan4t);
 
     while (TRUE) {
 
@@ -251,7 +252,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan2_t);
 
-                tD2 = CalcTimeDelay(chan2_t, THD, TOA1, lagBounds, pkCounterMax);
+                tD2 = CalcTimeDelay(chan1_t, chan2_t, THD, TOA1, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CHANNEL 3 TIME DELAY //////////////////////////////////
@@ -266,7 +267,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan3_t);
 
-                tD3 = CalcTimeDelay(chan3_t, THD, lagBounds, pkCounterMax);
+                tD3 = CalcTimeDelay(chan1_t, chan3_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CHANNEL 4 TIME DELAY //////////////////////////////////
@@ -281,7 +282,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan4_t);
 
-                tD4 = CalcTimeDelay(chan4_t, THD, lagBounds, pkCounterMax);
+                tD4 = CalcTimeDelay(chan1_t, chan4_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CALCULATING AZIMUTHS //////////////////////////////////
