@@ -1,83 +1,72 @@
 /*
-*	Author:  Joshua Simmons, Zack Goyetche, Michael Daub, and Shane Stroh
-*	Started: September, 2015
-*	Status:  INCOMPLETE
+*   Author:  Joshua Simmons, Zack Goyetche, Michael Daub, and Shane Stroh
+*   Started: September, 2015
+*   Status:  INCOMPLETE
 *
-*	PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!!!
+*   PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!!!
 *
-*	Description: Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to
-*				 pulsing signal source underwater.
+*   Description: Uses Time-Difference-of-Arrival (TDOA) to determine the azimuth to a pulsing sinisoid signal source
+*                       underwater.
 *
-*	Source Characteristics (Teledyne Benthos)
-*		1. Waveform: sinusoidal
-*		2. Frequency: 25-40 [kHz] in 0.5 [kHz] increments
-*		3. Pulse Length: 4.0 [ms]
-*		4. Pulse Repetition: 0.5 OR 1 OR 2 [s]
-*		5. Acoustic Output Power: 0.125-5.000 [W]
-*		6. Depth Rating: 750 [m]
+*   Example Source Characteristics (Teledyne Benthos)
+*       1. Waveform: sinusoidal
+*       2. Frequency: 25-40 [kHz] in 0.5 [kHz] increments
+*       3. Pulse Length: 4 [ms]
+*       4. Pulse Width: 0.5,1,2 [s]
+*       5. Acoustic Output Power: 0.125-5 [W]
+*       6. Depth Rating: 750 [m]
 *
-*	3D Cartesian co-ordinate system with the origin centered in the middle of the sensor
-*	array. Sensor geometry is square shaped residing all in the XY-plane.
+*   3D Cartesian co-ordinate system with the origin centered in the middle of the sensor array. Sensor geometry is
+*   diamond shaped residing all in the XY-plane.
 *
-*	Sensor layout
+*               (Top View)
+*   ---------------------
+*   |                                    |
+*   |                 1                 |
+*   |                                    |
+*   |          4            2          |
+*   |                                    |
+*   |                 3                 |
+*   |                                    |
+*   ---------------------
 *
-*		  (Top View)
-*	---------------------
-*	|                   |
-*	|         1         |
-*	|                   |
-*	|     4       2     |
-*	|                   |
-*	|         3         |
-*	|                   |
-*	---------------------
+*   Coordinates
+*       chan1  = ( 0, d,0)		D = sqrt(2)*d
+*       chan2  = ( d, 0,0)
+*       chan3  = ( 0,-d,0)
+*       chan4  = (-d, 0,0)
+*       pinger = (xP,yP,zP)
 *
-*	Coordinates
-*		chan1  = ( 0, d,0)		D = sqrt(2)*d
-*		chan2  = ( d, 0,0)
-*		chan3  = ( 0,-d,0)
-*		chan4  = (-d, 0,0)
-*		pinger = (xP,yP,zP)
-*
-*	Sequence of Events
-*		1. Constant and variable declarations and initializations
-*		2. Synchorization with pinger using a single channel
-*			A. Chan1 sampled
-*			B. FFT
-*			C. Power
-*			    i. Adjust PGA gain if necessary
-*			D. Ideal bandpass filter
-*			E. iFFT
-*			F. Pinger synchronized
-*				i.  Pulse-Repetitive-Period estimated
-*                       a. PRT adjusted
-*				ii. Heads centered in frame window
-*						a. PRT adjusted
-*		3. All 4 channels sampled and azimuth to source estimated
-*			A. All channels sampled
-*			B. FFT
-*			C. Power
-*			    i. Adjust PGA gain if necessary
-*			D. Ideal bandpass filter
-*			E. iFFT
-*			F. Breakwall TOAs
-*				i. Head triggered left-to-right break threshold detection
-*			G. Break time delays
-*				i. Difference in breakwall TOAs
-*			H. XC time delays
-*				i. Bounded cross-correlation 
-*			I. Comparing breakwall and XC time delays to find the superior TOA
-*			K. Sphere radii
-*			L. Pseudo pinger location (could be complex)
-*			M. Azimuths
-*				i.   Checking for complex solutions (arg(complex number) == 0)
-*				ii.  Saving last 10 azimuths if REAL
-*				iii. Taking median of last 10 azimuths
+*   State-Transition-Diagram
+*       1. Processor is synchorized with the pinger using channel 1 as the reference
+*           A. All channels are sampled
+*           B. FFT
+*           C. Signal Power
+*               i. Adjust PGA gain if necessary
+*           D. Pinger frequency determined by bounded Max function
+*           E. Ideal bandpass filter
+*           F. iFFT
+*           G. Pulse-Repetitive-Period adjusted
+*               i. Leading edge of signals centered in sample frame
+*       2. Time delay information computed and used to calculate azimuths to source
+*           A. All channels sampled
+*           B. FFT
+*           C. Signal Power
+*               i. Adjust PGA gain if necessary
+*           D. Ideal bandpass filter
+*           E. iFFT
+*           F. Pseudo Time-of-Arrival calculated using break wall detection
+*           G. Break wall time delay
+*           H. XCorr time delays
+*           I. Comparison between break wall and XCorr time delays
+*           J. Coordinates of pinger in Cartesian coordinates (could be complex)
+*           K. Azimuths determined
+*               i. Median of last 10 REAL azimuths
 *
 *   Programming Conventions:
 *       1. All arrays have their size stored in their zeroth element.
 *           Example: int myArray[1+10] = {10,1,2,3,4,5,6,7,8,9,10};
-*       2. All units are elemental metric unless specified otherwise. [s], [m], [Hz], etc.
+*       2. All units are metric.
 */
 
 #include "js_tdoa.h"
@@ -106,7 +95,6 @@ static const double halfChan = 5.0E+3;// Channel Half-Width [Hz]
 
 // FFT
 static const int N0 = 1024;// Frame Size [samples]
-static const double f0 = fADC/N0;// Frequency Resolution [Hz]
 
 // Pinger
 static const double fPingerMin = 20.0E+3;// Lowest Possible Pinger Frequency [Hz]
@@ -179,7 +167,7 @@ int main (void) {
 
         // Constructing Double-Sided Frequency Vector
         f[i] = -N0/2 + (i-1);
-        f[i] = f0 * f[i];
+        f[i] = fADC/N0 * f[i];
 
         // Constructing Ideal Digital Bandpass Filter
         if ( cabs(f[i]) >= fCenter-halfChan && cabs(f[i]) <= fCenter+halfChan ) {
@@ -189,14 +177,14 @@ int main (void) {
     }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// START MAIN ROUTINE ///////////////////////////////////
+////////////////////////////////// START MAIN ROUTINE //////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
     while (TRUE) {
 
         if ( pingerSynced == FALSE) {
             /////////////////////////////////////////////////////////////////////////////////////////
-            /////////////////////////////////// SYNCHRONIZING WITH PINGER ///////////////////////////
+            /////////////////////////////////// SYNCHRONIZING WITH PINGER /////////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
             SyncPinger(chan1_t, pingerSynced, PRT);
@@ -205,7 +193,7 @@ int main (void) {
 
         else {
             /////////////////////////////////////////////////////////////////////////////////////////
-            ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION ////////////////////////
+            ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION ////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
             SampleAllChans(fADC, chan1_t, chan2_t, chan3_t, chan4_t);
@@ -219,15 +207,18 @@ int main (void) {
 
             iFFT(chanx_f,chan1_t);
             CenterWindow(chan1_t, N0, fADC, threshold, pingerSynced, PRT, TOA1);   // Fine adjusting PRT
-            // Resynchronize with the pinger
-            if ( TOA1 < 0 ) { pingerSynced == FALSE; }
+
+            // May need to resynchronize with the pinger
+            if ( TOA1 < 0 ) {
+                pingerSynced == FALSE;
+            }
             else;
             
             if ( pingerSynced == TRUE ) {
 
-                /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 2 TIME DELAY //////////////////////////////////
-                /////////////////////////////////////////////////////////////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////// CHANNEL 2 TIME DELAY ////////////////////////////////
+                ////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan2_t,chanx_f);
 
@@ -240,8 +231,8 @@ int main (void) {
 
                 tD2 = CalcTimeDelay(chan1_t, chan2_t, THD, TOA1, lagBounds, pkCounterMax);
 
-                /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 3 TIME DELAY //////////////////////////////////
+                //////////////////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////// CHANNEL 3 TIME DELAY /////////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan3_t,chanx_f);
@@ -256,7 +247,7 @@ int main (void) {
                 tD3 = CalcTimeDelay(chan1_t, chan3_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 4 TIME DELAY //////////////////////////////////
+                ///////////////////////////////// CHANNEL 4 TIME DELAY /////////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan4_t,chanx_f);
@@ -271,35 +262,31 @@ int main (void) {
                 tD4 = CalcTimeDelay(chan1_t, chan4_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CALCULATING AZIMUTHS //////////////////////////////////
+                ///////////////////////////////// CALCULATING AZIMUTHS ////////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
+                // Complex solutions accounted for by CalcDiamondPingerLocation()
                 CalcDiamondPingerLocation(d, td2, td3, td4, TOA, vP, pingerLocs);
 
-                // Checking for complex pinger coordinates
-                if ( cimag(pingerLoc[1]) == 0 && cimag(pingerLoc[2]) && cimag(pingerLoc[3]) == 0 ) {
+                CalcPingerAzimuths(pingerLocs, azimuthH, azimuthV1, azimuthV2);
 
-                    CalcPingerAzimuths(pingerLocs, azimuthH, azimuthV1, azimuthV2);
-
-                    // Indices for running median
-                    if ( medianCounter % (medianSize+1) == 0 ) {
-                        medianCounter = 1;  // counter reset
-                    }
-                    else;
-
-                    azimuthHArray [medianCounter] = azimimuthH;
-                    azimuthV1Array[medianCounter] = azimimuthV1;
-                    azimuthV2Array[medianCounter] = azimimuthV2;
-
-                    azimuthH  = Median(azimuthHArray);  // fix bug Median() overwrites
-                    azimuthV1 = Median(azimuthV1Array);
-                    azimuthV2 = Median(azimuthV2Array);
-
-                    printf("\nAzimuthA = %f\tAzimuthV1 = %f\tAzimuthV2 = %f", azimuthH, azimuthV1, azimuthV2);
-
-                    medianCounter++;
+                // Indices for running median
+                if ( medianCounter % (medianSize+1) == 0 ) {
+                    medianCounter = 1;  // medianCounter reset
                 }
                 else;
+
+                azimuthHArray[medianCounter] = azimimuthH;
+                azimuthV1Array[medianCounter] = azimimuthV1;
+                azimuthV2Array[medianCounter] = azimimuthV2;
+
+                azimuthH = Median(azimuthHArray);  // fix bug Median() overwrites
+                azimuthV1 = Median(azimuthV1Array);
+                azimuthV2 = Median(azimuthV2Array);
+
+                printf("\nAzimuthA = %f\tAzimuthV1 = %f\tAzimuthV2 = %f", azimuthH, azimuthV1, azimuthV2);
+
+                medianCounter++;
             }
             else;
         }
@@ -307,9 +294,9 @@ int main (void) {
         DelaySampleTrigger(PRT);
     }
 
-	return 0;
+    return 0;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////// END OF PROGRAM ////////////////////////////////////
+///////////////////////////////////// END OF PROGRAM //////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
