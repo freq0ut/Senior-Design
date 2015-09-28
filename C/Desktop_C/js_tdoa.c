@@ -102,7 +102,7 @@ void CalcDiamondPingerLocation(double d, double td2, double td3, double td4, dou
     return;
 }
 
-double CalcTimeDelay (double fADC, int N0, double* chan1_t, double* chanx_t, double threshold, double TOA1, int lagBounds, int pkCounterMax) {
+double CalcTimeDelay (double fADC, int N, double* chan1_t, double* chanx_t, double threshold, double TOA1, int lagBounds, int pkCounterMax) {
      /*
     *   Author: Joshua Simmons
     *
@@ -144,7 +144,7 @@ double CalcTimeDelay (double fADC, int N0, double* chan1_t, double* chanx_t, dou
             tD_XCs[i] = XC_Lags[pkLocs[i]] / fADC;
         }
         else {
-            tD_XCs[i] = -10*N0/fADC;
+            tD_XCs[i] = -10*N/fADC;
         }
     }
 
@@ -153,7 +153,7 @@ double CalcTimeDelay (double fADC, int N0, double* chan1_t, double* chanx_t, dou
     return tD;
 }
 
-void CenterWindow (double fADC, int N0, double* chan1_t, double threshold, double* PRT, double *TOA1) {
+void CenterWindow (double fADC, int N, double* chan1_t, double threshold, double* PRT, double *TOA1) {
     /*
     *   Author: Joshua Simmons
     *
@@ -167,7 +167,7 @@ void CenterWindow (double fADC, int N0, double* chan1_t, double threshold, doubl
     */
 
     double tError = 0.0;
-    double tCenter = (N0/2+1) / fADC;
+    double tCenter = (N/2+1) / fADC;
 
     char* dir = "LR";
     *TOA1 = BreakWall(dir,chan1_t,threshold) / fADC;
@@ -207,7 +207,7 @@ void DelaySampleTrigger(double PRT) {
     return;
 }
 
-void SampleAllChans (int simFrame, double fADC, int N0, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
+void SampleAllChans (int simFrame, double fADC, int N, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
     /*
     *   Author: Joshua Simmons
     *
@@ -246,7 +246,7 @@ void SampleAllChans (int simFrame, double fADC, int N0, double* chan1_t, double*
     return;
 }
 
-void SyncPinger (double fADC, int N0, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4t, 
+void SyncPinger (double fADC, int N, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4t, 
     double _Complex H, double threshold, double PRT_Min, double* PRT, int* pingerSynced) {
     /*
     *   Author: Joshua Simmons
@@ -284,8 +284,8 @@ void SyncPinger (double fADC, int N0, double* chan1_t, double* chan2_t, double* 
     double triggerDelay = 0.9*tPW_Min; // Minimal expected pulse width
     double t_Trigger1 = 0.0;
     double t_Trigger2 = 0.0;
-    double tLowerBound = 0.1*N0/fADC;
-    double tUpperBound = 0.9*N0/fADC;
+    double tLowerBound = 0.1*N/fADC;
+    double tUpperBound = 0.9*N/fADC;
     double PRT_Array[1+10];
 
     PRT_Array[1] = 10;
@@ -294,13 +294,13 @@ void SyncPinger (double fADC, int N0, double* chan1_t, double* chan2_t, double* 
 
         printf("\nAttemping to synchronize with pinger...");
         
-        SampleAllChans(fADC, N0, chan1_t, chan2_t, chan3_t, chan4_t);
+        SampleAllChans(fADC, N, chan1_t, chan2_t, chan3_t, chan4_t);
         FFT(chan1_t,chanx_f);
 
         AdjustPGA(f,chanx_f, powerMin, powerMax);
 
         // Bandpass Filtering Channel 1
-        for (int i=1; i <= N0; i++) {
+        for (int i=1; i <= N; i++) {
             chanx_f[i] = chanx_f[i] * H[i];
         }
 
@@ -341,7 +341,7 @@ void SyncPinger (double fADC, int N0, double* chan1_t, double* chan2_t, double* 
             }
             // Centering Window
             else if ( triggerCount >= triggerCountPRT_Max ) {
-                CenterWindow(fADC,N0,chan1_t,threshold,PRT,TOA1);
+                CenterWindow(fADC,N,chan1_t,threshold,PRT,TOA1);
                 triggerDelay = PRT;
 
                 if ( triggerCount >= triggerCountCW_Max ) {

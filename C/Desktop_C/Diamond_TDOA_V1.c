@@ -1,7 +1,7 @@
 /*
 *   Author:  Joshua Simmons, Zack Goyetche, Michael Daub, and Shane Stroh
 *   Started: September, 2015
-*   Status:  INCOMPLETE
+*   Status:  75%
 *
 *   PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!!!
 *
@@ -72,13 +72,13 @@
 #include "js_tdoa.h"
 
 /////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// PIN DECLARATIONS /////////////////////////////////////
+////////////////////////////////// PIN DECLARATIONS ///////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // NONE!
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////// CONSTANT DECLARATION AND INITIALIZATION ////////////////////////
+//////////////////////// CONSTANT DECLARATION AND INITIALIZATION //////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
 // ADC
@@ -94,7 +94,7 @@ static const double fCenter = 30.0E+3;// Center Frequency [Hz]
 static const double halfChan = 5.0E+3;// Channel Half-Width [Hz]
 
 // FFT
-static const int N0 = 1024;// Frame Size [samples]
+static const int N = 1024;// Frame Size [samples]
 
 // Pinger
 static const double fPingerMin = 20.0E+3;// Lowest Possible Pinger Frequency [Hz]
@@ -111,13 +111,13 @@ static const double threshold = 0.5;// CalcTimeDelay() and CenterWindow()
 
 int main (void) {
 /////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////// VARIABLE DECLARATION AND INITIALIZATION ////////////////////////
+//////////////////////// VARIABLE DECLARATION AND INITIALIZATION ///////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
     // FFT
-    double f[1+N0] = {N0};// Double-Sided Frequency Vector
-    double _Complex chanx_f[1+N0] = {N0};// Chanx in Frequency Domain
-    double _Complex H[1+N0] = {N0};// Ideal Bandpass Filter
+    double f[1+N] = {N};// Double-Sided Frequency Vector
+    double _Complex chanx_f[1+N] = {N};// Chanx in Frequency Domain
+    double _Complex H[1+N] = {N};// Ideal Bandpass Filter
 
     // Pinger
     int pingerSynced = FALSE;
@@ -142,14 +142,14 @@ int main (void) {
     double azimuthV2Array[1+medianSize] = {medianSize}; // Array of previous vertical azimuth 2 estimates
 
     // Time Sampled Data
-    double t[1+N0] = {N0}; // Time Vector
-    double chan1_t[1+N0] = {N0}; // Channel 1 Time Sampled Data
-    double chan2_t[1+N0] = {N0}; // Channel 2 Time Sampled Data
-    double chan3_t[1+N0] = {N0}; // Channel 3 Time Sampled Data
-    double chan4_t[1+N0] = {N0}; // Channel 4 Time Sampled Data
+    double t[1+N] = {N}; // Time Vector
+    double chan1_t[1+N] = {N}; // Channel 1 Time Sampled Data
+    double chan2_t[1+N] = {N}; // Channel 2 Time Sampled Data
+    double chan3_t[1+N] = {N}; // Channel 3 Time Sampled Data
+    double chan4_t[1+N] = {N}; // Channel 4 Time Sampled Data
 
-    // Initialization and Creation of Arrays of Size N0
-    for (int i = 1; i <= N0; i++) {
+    // Initialization and Creation of Arrays of Size N
+    for (int i = 1; i <= N; i++) {
 
         // Initializing
         f[i] = 0.0;
@@ -166,8 +166,8 @@ int main (void) {
         t[i] = (i-1)/fADC;
 
         // Constructing Double-Sided Frequency Vector
-        f[i] = -N0/2 + (i-1);
-        f[i] = fADC/N0 * f[i];
+        f[i] = -N/2 + (i-1);
+        f[i] = fADC/N * f[i];
 
         // Constructing Ideal Digital Bandpass Filter
         if ( cabs(f[i]) >= fCenter-halfChan && cabs(f[i]) <= fCenter+halfChan ) {
@@ -177,14 +177,14 @@ int main (void) {
     }
 
 /////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////// START MAIN ROUTINE //////////////////////////////////
+////////////////////////////////// START MAIN ROUTINE /////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
     while (TRUE) {
 
         if ( pingerSynced == FALSE) {
             /////////////////////////////////////////////////////////////////////////////////////////
-            /////////////////////////////////// SYNCHRONIZING WITH PINGER /////////////////////////
+            /////////////////////////////////// SYNCHRONIZING WITH PINGER ///////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
             SyncPinger(chan1_t, pingerSynced, PRT);
@@ -193,7 +193,7 @@ int main (void) {
 
         else {
             /////////////////////////////////////////////////////////////////////////////////////////
-            ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION ////////////////////
+            ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION //////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
             SampleAllChans(fADC, chan1_t, chan2_t, chan3_t, chan4_t);
@@ -201,12 +201,12 @@ int main (void) {
             AdjustPGA(f,chanx_f, powerMin, powerMax);
 
             // Bandpass Filtering Channel 1
-            for (int i=1; i <= N0; i++) {
+            for (int i=1; i <= N; i++) {
                 chanx_f[i] = chanx_f[i] * H[i];
             }
 
             iFFT(chanx_f,chan1_t);
-            CenterWindow(chan1_t, N0, fADC, threshold, pingerSynced, PRT, TOA1);   // Fine adjusting PRT
+            CenterWindow(chan1_t, N, fADC, threshold, pingerSynced, PRT, TOA1);   // Fine adjusting PRT
 
             // May need to resynchronize with the pinger
             if ( TOA1 < 0 ) {
@@ -217,7 +217,7 @@ int main (void) {
             if ( pingerSynced == TRUE ) {
 
                 ////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 2 TIME DELAY ////////////////////////////////
+                ///////////////////////////////// CHANNEL 2 TIME DELAY //////////////////////////////
                 ////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan2_t,chanx_f);
@@ -231,8 +231,8 @@ int main (void) {
 
                 tD2 = CalcTimeDelay(chan1_t, chan2_t, THD, TOA1, lagBounds, pkCounterMax);
 
-                //////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 3 TIME DELAY /////////////////////////////////
+                /////////////////////////////////////////////////////////////////////////////////////////
+                ///////////////////////////////// CHANNEL 3 TIME DELAY ///////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan3_t,chanx_f);
@@ -247,7 +247,7 @@ int main (void) {
                 tD3 = CalcTimeDelay(chan1_t, chan3_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CHANNEL 4 TIME DELAY /////////////////////////////////
+                ///////////////////////////////// CHANNEL 4 TIME DELAY ///////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 FFT(chan4_t,chanx_f);
@@ -262,7 +262,7 @@ int main (void) {
                 tD4 = CalcTimeDelay(chan1_t, chan4_t, THD, lagBounds, pkCounterMax);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
-                ///////////////////////////////// CALCULATING AZIMUTHS ////////////////////////////////
+                ///////////////////////////////// CALCULATING AZIMUTHS //////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 // Complex solutions accounted for by CalcDiamondPingerLocation()
