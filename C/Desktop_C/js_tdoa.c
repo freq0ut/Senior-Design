@@ -218,25 +218,25 @@ void SampleAllChans (int simFrame, double* chan1_t, double* chan2_t, double* cha
     *   Notes: NONE!
     */
 
-    char* chanXSimDataFile = "/Users/betio32/Desktop/TDOA_Chan1_SimDataXXX.CSV";
+    char* chanXSimDataFile = "/Users/betio32/Documents/myGitHub/Senior-Design/C/Desktop_C/SIM_DATA/TDOA_Chan1_SimDataXXX.CSV";
 
     int ones = simFrame%1;
     int tens = simFrame%10;
     int hundreds = simFrame%100;
 
-    chanXSimDataFile[42] = ones;
-    chanXSimDataFile[41] = tens;
-    chanXSimDataFile[40] = hundreds;
+    chanXSimDataFile[89] = ones;
+    chanXSimDataFile[88] = tens;
+    chanXSimDataFile[87] = hundreds;
 
     ReadCSV(simDataFile,chan1_t);
     
-    chanXSimDataFile[31] = 2;
+    chanXSimDataFile[78] = 2;
     ReadCSV(simDataFile,chan2_t);
 
-    chanXSimDataFile[31] = 3;
+    chanXSimDataFile[78] = 3;
     ReadCSV(simDataFile,chan3_t);
 
-    chanXSimDataFile[31] = 4;
+    chanXSimDataFile[78] = 4;
     ReadCSV(simDataFile,chan4_t);
 
     printf("\nSampled All Channels.");

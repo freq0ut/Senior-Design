@@ -1,0 +1,11 @@
+fADC = 1800 [kHz]
+N = 1024
+THD = 0.6;
+vP = 1482 [m/s]
+
+halfChan = 5 [kHz]
+fPinger = 30 [kHz]
+SNR = 0
+
+Horizontal Azimuth = 296.4 [deg]
+Elevation Azimuth = 335.8 [deg]

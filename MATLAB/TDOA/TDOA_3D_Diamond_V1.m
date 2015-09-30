@@ -63,7 +63,7 @@ clear all;
 clc;
 
 %addpath('C:\Users\Joshua Simmons\Desktop\Senior_Design\Senior-Design\MATLAB\Support_Functions');
-addpath('/Users/betio32/Desktop/Senior-Design/MATLAB/Support_Functions');
+addpath('/Users/betio32/Documents/myGitHub/Senior-Design/MATLAB/Support_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% PARAMETER INITIALIZATION %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -229,6 +229,12 @@ for trialCount = 1:trialTotal;
     
     % Adding White Gaussian Noise
     DATA_RAW_t = awgn(DATA_RAW_t,SNR);
+    
+    % Exporting to CSV for simulations
+    csvwrite('/Users/betio32/Desktop/TDOA_Chan1_SimData001.CSV', DATA_RAW_t(1,:)');
+    csvwrite('/Users/betio32/Desktop/TDOA_Chan2_SimData001.CSV', DATA_RAW_t(2,:)');
+    csvwrite('/Users/betio32/Desktop/TDOA_Chan3_SimData001.CSV', DATA_RAW_t(3,:)');
+    csvwrite('/Users/betio32/Desktop/TDOA_Chan4_SimData001.CSV', DATA_RAW_t(4,:)');
             
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% BEGIN SIGNAL PROCESSING %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
