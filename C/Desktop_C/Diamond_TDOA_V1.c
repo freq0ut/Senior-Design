@@ -1,7 +1,7 @@
 /*
 *   Author:  Joshua Simmons, Zack Goyetche, Michael Daub, and Shane Stroh
 *   Started: September, 2015
-*   Status:  75%
+*   Status:  80%
 *
 *   PINGER ASSUMED TO BE INTERMITTENT AT FIXED INTERVALS!!!
 *
@@ -97,16 +97,16 @@ static const double halfChan = 5.0E+3;// Channel Half-Width [Hz]
 static const int N = 1024;// Frame Size [samples]
 
 // Pinger
-static const double fPingerMin = 20.0E+3;// Lowest Possible Pinger Frequency [Hz]
-                                         // fPinger determined by SyncPinger()
+static const double fPinger = 30.0E+3;// Pinger Frequency [Hz]
 static const double tPW_Min = 1.3E-3;// Minimal expected pulse width [s]
 
 // Hydrophones
 static const double vP = 1482.0;// Velocity of Propagation [m/s]
 static const double D = 0.10;// Hydrophone Spacing [m]
-static const double d = D/1.414213562373095;// For System of Coordinates [m]
 
 // Time Delays
+static const int lagBounds = (int) (D*fADC/vP+1);// XCorr boundary limits
+static const int pkCounterMax = (int) (D/lambda+1);// Max number of peaks for Max(XCorr)
 static const double threshold = 0.5;// CalcTimeDelay() and CenterWindow()
 
 int main (void) {
@@ -180,14 +180,15 @@ int main (void) {
 ////////////////////////////////// START MAIN ROUTINE /////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////
 
-    while (TRUE) {
+    //while (TRUE) {
+    for (int simFrame = 0; simFrame <=0; simFrame++) {
 
         if ( pingerSynced == FALSE) {
             /////////////////////////////////////////////////////////////////////////////////////////
             /////////////////////////////////// SYNCHRONIZING WITH PINGER ///////////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
-            SyncPinger(chan1_t, pingerSynced, PRT);
+            SyncPinger(simFrame, chan1_t, chan2_t, chan3_t, chan4_t, H, PRT, pingerSynced);
 
         }
 
@@ -196,7 +197,7 @@ int main (void) {
             ////////////////////////////// CHECK FOR LOSS OF SYNCHRONIZATION //////////////////
             /////////////////////////////////////////////////////////////////////////////////////////
 
-            SampleAllChans(fADC, chan1_t, chan2_t, chan3_t, chan4_t);
+            SampleAllChans (simFrame, chan1_t, chan2_t, chan3_t, chan4_t);
             FFT(chan1_t,chanx_f);
             AdjustPGA(f,chanx_f, powerMin, powerMax);
 
@@ -206,7 +207,7 @@ int main (void) {
             }
 
             iFFT(chanx_f,chan1_t);
-            CenterWindow(chan1_t, N, fADC, threshold, pingerSynced, PRT, TOA1);   // Fine adjusting PRT
+            CenterWindow (chan1_t, PRT, TOA1);// Fine adjusting PRT
 
             // May need to resynchronize with the pinger
             if ( TOA1 < 0 ) {
@@ -229,7 +230,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan2_t);
 
-                tD2 = CalcTimeDelay(chan1_t, chan2_t, THD, TOA1, lagBounds, pkCounterMax);
+                tD2 = CalcTimeDelay(chan1_t, chan2_t, TOA1);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CHANNEL 3 TIME DELAY ///////////////////////////////
@@ -244,7 +245,7 @@ int main (void) {
 
                 iFFT(chanx_f,chan3_t);
 
-                tD3 = CalcTimeDelay(chan1_t, chan3_t, THD, lagBounds, pkCounterMax);
+                tD3 = CalcTimeDelay(chan1_t, chan3_t, TOA1);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CHANNEL 4 TIME DELAY ///////////////////////////////
@@ -259,14 +260,14 @@ int main (void) {
 
                 iFFT(chanx_f,chan4_t);
 
-                tD4 = CalcTimeDelay(chan1_t, chan4_t, THD, lagBounds, pkCounterMax);
+                tD4 = CalcTimeDelay(chan1_t, chan4_t, TOA1);
 
                 /////////////////////////////////////////////////////////////////////////////////////////
                 ///////////////////////////////// CALCULATING AZIMUTHS //////////////////////////////
                 /////////////////////////////////////////////////////////////////////////////////////////
 
                 // Complex solutions accounted for by CalcDiamondPingerLocation()
-                CalcDiamondPingerLocation(d, td2, td3, td4, TOA, vP, pingerLocs);
+                CalcDiamondPingerLocation(D, td2, td3, td4, TOA1, pingerLocs);
 
                 CalcPingerAzimuths(pingerLocs, azimuthH, azimuthV1, azimuthV2);
 

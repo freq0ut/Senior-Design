@@ -29,6 +29,49 @@ void AdjustPGA (double* f, double _Complex* chanx_f, double powerMin, double pow
     return;
 }
 
+void CalcDiamondPingerLocation(double D, double td2, double td3, double td4, double TOA1, double* pingerLocs) {
+    /*
+    *   Author: Joshua Simmons
+    *
+    *   Date: September 2015
+    *
+    *   Description: Calculates the pinger coordinates for a diamond sensor configuration using TDOA.
+    *
+    *   Status: untested
+    *
+    *   Notes: NONE!
+    */
+
+    double d = D/1.414213562373095;// For System of Coordinates [m]
+    double R1 = 0.0;
+    double R2 = 0.0;
+    double R3 = 0.0;
+    double R4 = 0.0;
+
+    R1 = vp*(TOA1);
+    R2 = vp*(TOA1+td2);
+    R3 = vp*(TOA1+td3);
+    R4 = vp*(TOA1+td4);
+
+    // Checking for complex solutions
+    if ( R1 > 0 && R2 > 0 && R3 > 0 && R4 > 0) {
+        R1 = sqrt(R1);
+        R2 = sqrt(R2);
+        R3 = sqrt(R3);
+        R4 = sqrt(R4);
+
+        *pingerLocs[1] = (R4*R4 - R2*R2) / (4.0*d);
+        *pingerLocs[2] = (R3*R3 - R1*R1) / (4.0*d);
+        *pingerLocs[3] = sqrt( R1*R1 - pingerLocs[1]*pingerLocs[1] - (pingerLocs[2]-d)*(pingerLocs[2]-d) );
+    }
+    else {
+        printf("\nWarning in CalcDiamondPingerLocation(). Sphere radii are complex.");
+        printf("\nThe last REAL sphere radii will be used.");
+    }
+
+    return;
+}
+
 void CalcPingerAzimuths(double* pingerLocs, double* azimuthH, double* azimuthV1, double* azimuthV2) {
     /*
     *   Author: Joshua Simmons
@@ -60,49 +103,7 @@ void CalcPingerAzimuths(double* pingerLocs, double* azimuthH, double* azimuthV1,
     return;
 }
 
-void CalcDiamondPingerLocation(double d, double td2, double td3, double td4, double TOA1, double vP, double* pingerLocs){
-    /*
-    *   Author: Joshua Simmons
-    *
-    *   Date: September 2015
-    *
-    *   Description: Calculates the pinger coordinates for a diamond sensor configuration using TDOA.
-    *
-    *   Status: untested
-    *
-    *   Notes: NONE!
-    */
-
-    double R1 = 0.0;
-    double R2 = 0.0;
-    double R3 = 0.0;
-    double R4 = 0.0;
-
-    R1 = vp*(TOA1);
-    R1 = vp*(TOA1+td2);
-    R1 = vp*(TOA1+td3);
-    R1 = vp*(TOA1+td4);
-
-    // Checking for complex solutions
-    if ( R1 > 0 && R2 > 0 && R3 > 0 && R4 > 0 {
-        R1 = sqrt(R1);
-        R2 = sqrt(R2);
-        R3 = sqrt(R3);
-        R4 = sqrt(R4);
-
-        *pingerLocs[1] = (R4*R4 - R2*R2) / (4.0*d);
-        *pingerLocs[2] = (R3*R3 - R1*R1) / (4.0*d);
-        *pingerLocs[3] = sqrt( R1*R1 - pingerLocs[1]*pingerLocs[1] - (pingerLocs[2]-d)*(pingerLocs[2]-d) );
-    }
-    else {
-        printf("\nWarning in CalcDiamondPingerLocation(). Sphere radii are complex.");
-        printf("\nThe last REAL sphere radii will be used.");
-    }
-
-    return;
-}
-
-double CalcTimeDelay (double fADC, int N, double* chan1_t, double* chanx_t, double threshold, double TOA1, int lagBounds, int pkCounterMax) {
+double CalcTimeDelay (double* chan1_t, double* chanx_t, double TOA1) {
      /*
     *   Author: Joshua Simmons
     *
@@ -115,9 +116,6 @@ double CalcTimeDelay (double fADC, int N, double* chan1_t, double* chanx_t, doub
     *   Notes:
     *       1. lagBounds may become a variable and placed inside this function. This would happen if fPinger becomes a variable.
     */
-
-    *   static const int lagBounds = (int) (D*fADC/vP+1);// XCorr boundary limits
-    *   static const int pkCounterMax = (int) (D/lambda+1);// Max number of peaks for Max(XCorr)
 
     double tD = 0.0;
     double tD_BW = 0.0;
@@ -153,7 +151,7 @@ double CalcTimeDelay (double fADC, int N, double* chan1_t, double* chanx_t, doub
     return tD;
 }
 
-void CenterWindow (double fADC, int N, double* chan1_t, double threshold, double* PRT, double *TOA1) {
+void CenterWindow (double* chan1_t, double* PRT, double *TOA1) {
     /*
     *   Author: Joshua Simmons
     *
@@ -207,7 +205,7 @@ void DelaySampleTrigger(double PRT) {
     return;
 }
 
-void SampleAllChans (int simFrame, double fADC, int N, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
+void SampleAllChans (int simFrame, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4_t) {
     /*
     *   Author: Joshua Simmons
     *
@@ -246,8 +244,8 @@ void SampleAllChans (int simFrame, double fADC, int N, double* chan1_t, double* 
     return;
 }
 
-void SyncPinger (double fADC, int N, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4t, 
-    double _Complex H, double threshold, double PRT_Min, double* PRT, int* pingerSynced) {
+void SyncPinger (int simFrame, double* chan1_t, double* chan2_t, double* chan3_t, double* chan4t, double _Complex H, double* PRT,
+    int* pingerSynced) {
     /*
     *   Author: Joshua Simmons
     *
@@ -258,23 +256,6 @@ void SyncPinger (double fADC, int N, double* chan1_t, double* chan2_t, double* c
     *   Status: untested
     *
     *   Notes: NONE! 
-    *
-    *   % The start of the present frame globally
-    *   tGlobal = tADC*(iGlobal-1);
-    *
-    *   % Adjusting the PRT
-    *   if (headCount > 1 && headCount < 12)
-    *       PRT_Array(mod(headCount,10)+1) = tGlobal - tGlobalLast;
-    *       PRT = median(PRT_Array);
-    *   end
-    *
-    *   if (headCount < 12) % Delaying by PRT
-    *       tGlobalLast = tGlobal;
-    *       tGlobal = tGlobal + PRT;
-    *       else % Delaying so that the heads are in the center of the frame
-    *       tError = tHeads - tADC*(frameSize/2);
-    *       tGlobal = tGlobal + PRT + tError + tPing/4;   
-    *   end
     */
 
     char* dir = "LR";
@@ -294,7 +275,7 @@ void SyncPinger (double fADC, int N, double* chan1_t, double* chan2_t, double* c
 
         printf("\nAttemping to synchronize with pinger...");
         
-        SampleAllChans(fADC, N, chan1_t, chan2_t, chan3_t, chan4_t);
+        SampleAllChans (simFrame, chan1_t, chan2_t, chan3_t, chan4_t);
         FFT(chan1_t,chanx_f);
 
         AdjustPGA(f,chanx_f, powerMin, powerMax);
@@ -341,7 +322,7 @@ void SyncPinger (double fADC, int N, double* chan1_t, double* chan2_t, double* c
             }
             // Centering Window
             else if ( triggerCount >= triggerCountPRT_Max ) {
-                CenterWindow(fADC,N,chan1_t,threshold,PRT,TOA1);
+                CenterWindow(chan1_t,PRT,TOA1);
                 triggerDelay = PRT;
 
                 if ( triggerCount >= triggerCountCW_Max ) {
