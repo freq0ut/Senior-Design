@@ -189,43 +189,43 @@ for trialCount = 1:trialTotal;
         DATA_RAW_t(4,i) = 0;
     end
 
-    % Fast-Fourier Transform (Cooley-Tukey) into Frequency Domain
-    DATA_RAW_f(1,:) = fftshift(fft(DATA_RAW_t(1,:))) / N0;
-    DATA_RAW_f(2,:) = fftshift(fft(DATA_RAW_t(2,:))) / N0;
-    DATA_RAW_f(3,:) = fftshift(fft(DATA_RAW_t(3,:))) / N0;
-    DATA_RAW_f(4,:) = fftshift(fft(DATA_RAW_t(4,:))) / N0;
-    
-    % Adding low frequency ( <= 10 kHz) contamination
-    i = 1;
-    while (i<=N0)
-        if ( f(i) >= -10E+3 )
-           iLow = i;
-           i = N0;
-        end
-        
-        i = i+1;
-    end
-    
-    i = N0;
-    while (i>=1)
-        if ( f(i) <= 10E+3 )
-           iHigh = i;
-           i = 1;
-        end
-        
-        i = i-1;
-    end
-    
-    DATA_RAW_f(1,iLow:iHigh) = awgn( DATA_RAW_f(1,iLow:iHigh),0);
-    DATA_RAW_f(2,iLow:iHigh) = awgn( DATA_RAW_f(2,iLow:iHigh),0);
-    DATA_RAW_f(3,iLow:iHigh) = awgn( DATA_RAW_f(3,iLow:iHigh),0);
-    DATA_RAW_f(4,iLow:iHigh) = awgn( DATA_RAW_f(4,iLow:iHigh),0);
-    
-    % Fast-Fourier Transform (Cooley-Tukey) back into Time Domain
-    DATA_RAW_t(1,:) = ifft(ifftshift(DATA_RAW_f(1,:))) * N0;
-    DATA_RAW_t(2,:) = ifft(ifftshift(DATA_RAW_f(2,:))) * N0;
-    DATA_RAW_t(3,:) = ifft(ifftshift(DATA_RAW_f(3,:))) * N0;
-    DATA_RAW_t(4,:) = ifft(ifftshift(DATA_RAW_f(4,:))) * N0;
+%     % Fast-Fourier Transform (Cooley-Tukey) into Frequency Domain
+%     DATA_RAW_f(1,:) = fftshift(fft(DATA_RAW_t(1,:))) / N0;
+%     DATA_RAW_f(2,:) = fftshift(fft(DATA_RAW_t(2,:))) / N0;
+%     DATA_RAW_f(3,:) = fftshift(fft(DATA_RAW_t(3,:))) / N0;
+%     DATA_RAW_f(4,:) = fftshift(fft(DATA_RAW_t(4,:))) / N0;
+%     
+%     % Adding low frequency ( <= 10 kHz) contamination
+%     i = 1;
+%     while (i<=N0)
+%         if ( f(i) >= -10E+3 )
+%            iLow = i;
+%            i = N0;
+%         end
+%         
+%         i = i+1;
+%     end
+%     
+%     i = N0;
+%     while (i>=1)
+%         if ( f(i) <= 10E+3 )
+%            iHigh = i;
+%            i = 1;
+%         end
+%         
+%         i = i-1;
+%     end
+%     
+%     DATA_RAW_f(1,iLow:iHigh) = awgn( DATA_RAW_f(1,iLow:iHigh),0);
+%     DATA_RAW_f(2,iLow:iHigh) = awgn( DATA_RAW_f(2,iLow:iHigh),0);
+%     DATA_RAW_f(3,iLow:iHigh) = awgn( DATA_RAW_f(3,iLow:iHigh),0);
+%     DATA_RAW_f(4,iLow:iHigh) = awgn( DATA_RAW_f(4,iLow:iHigh),0);
+%     
+%     % Fast-Fourier Transform (Cooley-Tukey) back into Time Domain
+%     DATA_RAW_t(1,:) = ifft(ifftshift(DATA_RAW_f(1,:))) * N0;
+%     DATA_RAW_t(2,:) = ifft(ifftshift(DATA_RAW_f(2,:))) * N0;
+%     DATA_RAW_t(3,:) = ifft(ifftshift(DATA_RAW_f(3,:))) * N0;
+%     DATA_RAW_t(4,:) = ifft(ifftshift(DATA_RAW_f(4,:))) * N0;
     
     % Adding White Gaussian Noise
     DATA_RAW_t = awgn(DATA_RAW_t,SNR);
