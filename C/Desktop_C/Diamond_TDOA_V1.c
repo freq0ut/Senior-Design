@@ -169,7 +169,7 @@ int main (void) {
         f[i] = -N/2 + (i-1);
         f[i] = fADC/N * f[i];
 
-        // Constructing Ideal Digital Bandpass Filter
+        // Constructing Ideal Digital Bandpass Filter, in the future this will be moved to SyncPinger()
         if ( cabs(f[i]) >= fCenter-halfChan && cabs(f[i]) <= fCenter+halfChan ) {
             H[i] = 1.0;
         }
@@ -281,9 +281,9 @@ int main (void) {
                 azimuthV1Array[medianCounter] = azimimuthV1;
                 azimuthV2Array[medianCounter] = azimimuthV2;
 
-                azimuthH = Median(azimuthHArray);  // fix bug Median() overwrites
-                azimuthV1 = Median(azimuthV1Array);
-                azimuthV2 = Median(azimuthV2Array);
+                azimuthH = MedianDouble(azimuthHArray);
+                azimuthV1 = MedianDouble(azimuthV1Array);
+                azimuthV2 = MedianDouble(azimuthV2Array);
 
                 printf("\nAzimuthA = %f\tAzimuthV1 = %f\tAzimuthV2 = %f", azimuthH, azimuthV1, azimuthV2);
 

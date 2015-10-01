@@ -315,7 +315,7 @@ void SyncPinger (int simFrame, double* chan1_t, double* chan2_t, double* chan3_t
                 PRT_Array[triggerCount%10] = PRT;
 
                 if ( triggerCount > 2 ) {
-                    PRT = Median(PRT_Array);
+                    PRT = MedianDouble(PRT_Array);
                     triggerDelay = PRT;
                 }
                 else;
