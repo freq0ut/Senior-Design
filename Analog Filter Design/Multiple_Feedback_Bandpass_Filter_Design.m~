@@ -1,0 +1,60 @@
+% Author: Joshua Simmons
+%
+% Date: October 22, 2015
+%
+% Desciption: Selects the R and C values for a Multiple Feedback BPF.
+
+clear all;
+close all;
+clc;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%% USER INPUT %%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+fMid = 20E+3;% Mid frequency
+Q = 10;% Quality factor
+C3 = 1E-6;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%% CALCULATING TRANSFER FUNCTION %%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+f = linspace(1,2*fMid,1E+4);
+s = 1i*2*pi*f;
+
+omega = 2*pi*fMid;
+
+zeta = 1/(2*Q);
+alpha = omega*zeta;
+
+H = 1;% Gain at fMid
+
+
+
+% Prototypical 2nd Order BPF Transfer Function
+%H_BPF = -H*omega*s ./ (s.^2+alpha*omega.*s+omega^2);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%% PLOTTING TRANSFER FUNCTION %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Plotting
+figure(1);
+    subplot(2,1,1);
+        plot(0.001*f,abs(H_BPF));
+        grid on;
+        ylim([0,1]);
+        xlabel('Frequency [kHz]');
+        ylabel('|| H(j\omega) ||');
+        titleString = sprintf('Bandpass Filter Frequency Response\nQ = %3.1f', Q);
+        title(titleString);
+	subplot(2,1,2);
+        plot(0.001*f,(180/pi)*angle(H_BPF));
+        grid on;
+        ylim([-180,180]);
+        set(gca,'YTick',[-180,-135,-90,-45,0,45,90,135,180])
+        set(gca,'YTickLabel',[-180,-135,-90,-45,0,45,90,135,180]);
+        xlabel('Frequency [kHz]');
+        ylabel('\Theta H(j\omega) [Deg]');
+        
