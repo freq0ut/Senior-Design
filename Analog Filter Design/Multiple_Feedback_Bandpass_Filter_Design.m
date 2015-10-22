@@ -2,7 +2,8 @@
 %
 % Date: October 22, 2015
 %
-% Desciption: Selects the R and C values for a Multiple Feedback BPF.
+% Desciption: Selects the R and C values as well as plot the freq response for
+%             the Multiple Feedback Bandpass Filter. 
 
 clear all;
 close all;
@@ -28,7 +29,7 @@ C3 = 7.95E-6;
 omega = 2*pi*fMid;
 
 zeta = 1/(2*Q);    % Damping ratio
-alpha = omega*zeta;% Normalized dampling ratio
+alpha = omega*zeta;% Normalized damping ratio
 
 k = omega*C3;
 C4 = C3;
@@ -89,7 +90,7 @@ figure(1);
         plot(0.001*f,(180/pi)*angle(H_MFB_BPF2.^3));%  6th Order
         plot(0.001*f,(180/pi)*angle(H_MFB_BPF2.^4));%  7th Order
         plot(0.001*f,(180/pi)*angle(H_MFB_BPF2.^5));% 10th Order
-        plot(0.001*f,(180/pi)*angle(H_PRO_BPF2));%  2nd Order Proto
+        plot(0.001*f,(180/pi)*angle(H_PRO_BPF2));   %  2nd Order Proto
         grid on;
         ylim([-180,180]);
         set(gca,'YTick',[-180,-135,-90,-45,0,45,90,135,180])
