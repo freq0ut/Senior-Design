@@ -13,7 +13,7 @@ clc;
 %%%%%%%%%%%%%%%%%% USER INPUT %%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fMid  = 20E+3;% Mid frequency
+fMid  = 40E+3;% Mid frequency
 Q = 10;% Quality factor
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -25,7 +25,6 @@ s = 1i*2*pi*f;
 
 omega = 2*pi*fMid;
 
-% Prototypical 2nd Order BPF Transfer Function
 A = (1/Q) * (omega^2) ./ (s.^2+(omega/Q).*s+omega^2);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,8 +55,8 @@ figure(1);
         plot(0.001*f,(180/pi)*angle(A.^4));%  8th Order
         plot(0.001*f,(180/pi)*angle(A.^5));% 10th Order
         ylim([-180,180]);
-        set(gca,'YTick',[-180,-135,-90,-45,0,45,90,135,180])
-        set(gca,'YTickLabel',[-180,-135,-90,-45,0,45,90,135,180])
+        set(gca,'YTick',[0,45,90,180,4,5])
+        set(gca,'YTickLabel',[-180, -135, -90, 90, 180])
         grid on;
         xlabel('Frequency [kHz]');
         ylabel('\Theta H(j\omega) [Deg]');
