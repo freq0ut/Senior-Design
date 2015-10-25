@@ -2,13 +2,7 @@
 %
 % Date: October 22, 2015
 %
-% Desciption:   Selects the R and C values as well as plot the freq response for
-%               the Multiple Feedback Bandpass Filter.
-%
-%               The OP AMP that you select needs to have an open-loop gain of at
-%               least 10 times above the peak amplitude of the frequency response.
-%
-%               In other words A0 >> H*Q
+% Desciption:   Sweeps a selected resistor value and plots the frequency responses.
 
 clear all;
 close all;
@@ -21,8 +15,8 @@ clc;
 f0 = 20.0E+3;% Center frequency of passband
 
 % AT f0 THE GAIN WILL BE THE PRODUCT OF H AND Q
-H = 1;% Gain at f0
-Q = 10;% Quality factor
+H = 1.0;% Gain at f0
+Q = 10.0;% Quality factor
 
 % You select C1. Keep an eye on the calculated component
 % values of the resistors and capacitors so that they
@@ -34,61 +28,36 @@ C1 = 1.11E-9;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 w0 = 2*pi*f0;
+f = linspace(1,2*f0,1E+4);
+
+s = 1i*2*pi*f;
 
 zeta = 1/(2*Q); % Damping ratio
 alpha = w0*zeta;% Normalized damping ratio
 
-k = C1*w0;% Just a constant to simply math expressions
+k = C1*w0;% Just a constant to simplify math expressions
 C2 = C1;
-R1 = 1/(H*k);
-R2 = 1/((2*Q-H)*k);
-R3 = 2*Q/k;
 
-% Printing values of components
-componentValueString = sprintf('f0 = %2.2f [kHz]', 0.001*f0);
-disp(componentValueString);
-componentValueString = sprintf('H = %2.2f', H);
-disp(componentValueString);
-componentValueString = sprintf('Q = %2.2f', Q);
-disp(componentValueString);
-componentValueString = sprintf('C1 = %3.3f [nF]', 1E+9*C1);
-disp(componentValueString);
-componentValueString = sprintf('C2 = %3.3f [nF]', 1E+9*C2);
-disp(componentValueString);
-componentValueString = sprintf('R1 = %3.3f [kOhms]', 0.001*R1);
-disp(componentValueString);
-componentValueString = sprintf('R2 = %3.3f [kOhms]', 0.001*R2);
-disp(componentValueString);
-componentValueString = sprintf('R3 = %3.3f [kOhms]', 0.001*R3);
-disp(componentValueString);
+
+
+for R1=1.0E+3:1.0E+3:10.0E+3;
+
+    %R1 = 1/(H*k);
+    R2 = 1/((2*Q-H)*k);
+    R3 = 2*Q/k;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% TRANSFER FUNCTIONS %%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-f = linspace(1,2*f0,1E+4);
-s = 1i*2*pi*f;
+
 
 % Multiple Feedback BPF Transfer Function
 H_MFB_BPF2 = -s./(R1*C2) ./ ...
     (s.^2+s.*(C2+C1)/(R3*C2*C1)+(R1+R2)/(R1*R2*R3*C2*C1));
 
-% Optionally normalizing the transfer function
+% Normalizing the transfer function
 H_MFB_BPF2 = H_MFB_BPF2/(H*Q);
-
-% Determing the peak value of the pass band
-[~, KfPeak] = max(abs(H_MFB_BPF2));
-fPeak = f(KfPeak);
-
-% Equivalent MFB BBF Transfer Function
-%H_MFB_BPF2 = -H*omega*s ./ (s.^2+2*zeta*omega.*s+omega^2);
-
-% Determining critical points of transfer function
-% sMax1 = (-2*zeta*w0-w0*sqrt(4*zeta^2-3)) / 3;
-% sMax2 = (-2*zeta*w0+w0*sqrt(4*zeta^2-3)) / 3;
-% 
-% H_MFB_BPF2_Max1 = abs(-H*w0*sMax1 / (sMax1^2+2*zeta*w0*sMax1+w0^2));
-% H_MFB_BPF2_Max2 = abs(-H*w0*sMax2 / (sMax2^2+2*zeta*w0*sMax2+w0^2));
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%% PLOTTING TRANSFER FUNCTION %%%%%%%%%%
