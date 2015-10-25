@@ -7,9 +7,9 @@ H = 1.0
 Q = 1.0
 C1 = 1.11 [nF]
 C2 = 1.11 [nF]
-R1 = 5.031 [kOhm]
-R2 = 5.031 [Ohm]
-R3 = 10.062 [kOhm]
+R1 = 5.03 [kOhm]
+R2 = 5.03 [Ohm]
+R3 = 10.06 [kOhm]
 
 Freq [Hz]	v1P [mV]	v2P [mV]	Normalized Phase
 1000.00	2500.00	83.00	0.99
