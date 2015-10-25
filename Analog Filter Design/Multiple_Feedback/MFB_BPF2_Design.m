@@ -20,7 +20,7 @@ clc;
 
 % f0 = 28.5E+3, H = Q = 1
 
-f0 = 28.5E+3;% Center frequency of passband
+f0 = 25.5E+3;% Center frequency of passband
 
 % AT f0 THE GAIN WILL BE THE PRODUCT OF H AND Q
 H = 1.0;% Gain at f0
