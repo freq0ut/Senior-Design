@@ -19,6 +19,19 @@ function [XC, XC_Lags] = XCORR(Y1,Y2)
            Y2s(shift) = Y2(shift-tau+N0);
         end
         
+%         figure(1);
+%             subplot(2,1,1);
+%                 plot(Y1,'-b');
+%                 hold on;
+%                 plot(Y2s,'r');
+%                 ylim([-1,1]);
+%                 hold off;
+%             subplot(2,1,2);
+%                 plot(XC,'-m');
+%                 ylim([-250,250]);
+%             
+%         pause(0.01);
+        
         A = TRAPZ(X,Y1.*Y2s);
         XC(N0+tau) = A;
         XC_Lags(N0+tau) = tau;

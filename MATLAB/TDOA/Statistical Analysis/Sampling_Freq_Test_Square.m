@@ -11,17 +11,17 @@ trialTotal = 1e4; % Total number of iterations of main loop
 DATA_AZ = zeros(1,trialTotal);
 
 % Pinger Properties
-fPing = 47e3;      % Source freq [Hz]
+fPing = 20e3;      % Source freq [Hz]
 tPing = 1/fPing;   % Source period [s]
-vP   = 1482;       % Propagation Velocity [m/s]
+vP   = 1500;       % Propagation Velocity [m/s]
 lambda = vP/fPing; % Wavelength [m]
 pingMaxDist = 1;   % Pinger max distance from sensors [m]
 
 % Hydrophone Properties
-D = 0.05;    % Hydrophone spacing [m]
+D = 0.10;    % Hydrophone spacing [m]
 
 % ADC
-fADC = 300E+3;  % Sample freq [Hz]
+fADC = 900E+3;  % Sample freq [Hz]
 tADC = 1/fADC;  % Sample period [s]
 N0 = 1024;      % Samples per frame
 
@@ -60,8 +60,7 @@ for trialCount = 1:trialTotal;
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     
     % Constructing estimated time delays
-    %error = tADC;
-    error = 2.09964516617352e-07;
+    error = tADC/2;
     
     for i=2:4;
         tD_Est(i) = tD_Act(i) + (2*rand()-1) * error;

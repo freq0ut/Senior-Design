@@ -19,6 +19,12 @@ function [XC, XC_Lags] = XCORR2(Y1,Y2,iBound)
            Y2copy(shift) = Y2(iBound-tau+shift);
         end
         
+        figure(1);
+            plot(XC,'-r');
+            %ylim([-1,1]);
+            
+        pause(0.01);
+        
         A = TRAPZ(X,Y1.*Y2copy);
         XC(tau+iBound+1) = A;
         XC_Lags(tau+iBound+1) = tau;
