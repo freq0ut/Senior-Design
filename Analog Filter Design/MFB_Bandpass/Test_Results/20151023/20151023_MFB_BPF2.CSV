@@ -2,10 +2,12 @@ Median size = 11 Samples
 
 v1PP = 1164.00 [mV]
 
-Multiple Feedback Bandpass Filter (2nd)
+Multiple Feedback Bandpass Filter
+2nd Order
+Texas Instruments LM318N
 f0 = 20 [kHz]
-H = 1
-Q = 10;
+K = 1.0
+Q = 10.0;
 C1 = 1.11 [nF]
 C2 = 1.11 [nF]
 R1 = 7.169 [kOhm]

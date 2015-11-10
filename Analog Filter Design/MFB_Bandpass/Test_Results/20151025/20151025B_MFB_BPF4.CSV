@@ -2,6 +2,7 @@ Median size = 11 Samples
 
 Multiple Feedback Bandpass Filter
 4th Order
+Texas Instruments LM318N
 f0 = 25.5 [kHz]
 H = 1.0
 Q = 1.0
