@@ -1,0 +1,14 @@
+\select@language {english}
+\contentsline {section}{\numberline {1}TDOA}{2}{section.1}
+\contentsline {subsection}{\numberline {1.1}Pseudo-Doppler vs. TDOA}{2}{subsection.1.1}
+\contentsline {subsection}{\numberline {1.2}Diamond Geometry Mathematical Derivation}{4}{subsection.1.2}
+\contentsline {subsection}{\numberline {1.3}Tetrahedron Geometry Mathematical Derivation}{8}{subsection.1.3}
+\contentsline {subsection}{\numberline {1.4}Using Cross-Correlation for Determining the Time Delays}{11}{subsection.1.4}
+\contentsline {subsection}{\numberline {1.5}Error Analysis for Diamond and Tetrahedron Geometries}{12}{subsection.1.5}
+\contentsline {subsection}{\numberline {1.6}Increasing the Sensor Spacing Beyond Half a Wavelength}{14}{subsection.1.6}
+\contentsline {subsection}{\numberline {1.7}Memory Limitation and the Need for an External Trigger}{15}{subsection.1.7}
+\contentsline {subsection}{\numberline {1.8}Determining the Time Delays from the Tails}{16}{subsection.1.8}
+\contentsline {section}{\numberline {2}Implementation}{16}{section.2}
+\contentsline {subsection}{\numberline {2.1}Digital Signal Processing Desired Parameter Values}{16}{subsection.2.1}
+\contentsline {subsection}{\numberline {2.2}Analog and Digital Filter Placement}{16}{subsection.2.2}
+\contentsline {subsection}{\numberline {2.3}Other Considerations}{17}{subsection.2.3}

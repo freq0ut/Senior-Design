@@ -1,0 +1,13 @@
+\BOOKMARK [1][-]{section.1}{TDOA}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Pseudo-Doppler vs. TDOA}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Diamond Geometry Mathematical Derivation}{section.1}% 3
+\BOOKMARK [2][-]{subsection.1.3}{Tetrahedron Geometry Mathematical Derivation}{section.1}% 4
+\BOOKMARK [2][-]{subsection.1.4}{Using Cross-Correlation for Determining the Time Delays}{section.1}% 5
+\BOOKMARK [2][-]{subsection.1.5}{Error Analysis for Diamond and Tetrahedron Geometries}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.6}{Increasing the Sensor Spacing Beyond Half a Wavelength}{section.1}% 7
+\BOOKMARK [2][-]{subsection.1.7}{Memory Limitation and the Need for an External Trigger}{section.1}% 8
+\BOOKMARK [2][-]{subsection.1.8}{Determining the Time Delays from the Tails}{section.1}% 9
+\BOOKMARK [1][-]{section.2}{Implementation}{}% 10
+\BOOKMARK [2][-]{subsection.2.1}{Digital Signal Processing Desired Parameter Values}{section.2}% 11
+\BOOKMARK [2][-]{subsection.2.2}{Analog and Digital Filter Placement}{section.2}% 12
+\BOOKMARK [2][-]{subsection.2.3}{Other Considerations}{section.2}% 13
