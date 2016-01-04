@@ -1,39 +1,30 @@
-function [XC, XC_Lags] = XCORR(Y1,Y2)
+function [XC, XC_Lags] = XCORR3(Y1,Y2,tauStart,tauStop)
     % ***COMPLETED***
     % This function calculates cross-correlation.
     
-    if length(Y1) ~= length(Y2);
-        error('Y1 and Y2 are not the same length');
+    N = length(Y1);
+    XC = zeros(1,2*N-1);
+    XC_Lags = zeros(1,2*N-1);
+    
+    for tau = tauStart:tauStop;
+       
+       XC_Lags(N+tau) = tau;
+       
+       i = 1;
+       
+       if (tau<=0)
+           while (-tau+i<=N)
+               XC(N+tau) = XC(N+tau) + Y1(i) * Y2(-tau+i);
+               i = i + 1;
+           end
+           
+       else
+           while (tau+i<=N)
+               XC(N+tau) = XC(N+tau) + Y1(tau+i) * Y2(i);
+               i = i + 1;
+           end
+           
+       end
+       
     end
     
-    N0 = length(Y1);
-    X = 1:N0; % X array for TRAPZ to integrate properly
-    XC = zeros(1,2*N0-1);
-    XC_Lags = zeros(1,2*N0-1);    
-    Y2 = padarray(Y2,[0,N0],0,'both'); % Y2 is padded with zeros on
-                                       % both sides TRIPLING its size.
-    Y2s = zeros(1,N0); % Smaller Y2 array that will be shifted continuously.
-    
-    for tau = -N0+1:N0-1;
-        for shift = 1:N0; % Shifting the smaller Y2 array
-           Y2s(shift) = Y2(shift-tau+N0);
-        end
-        
-%         figure(1);
-%             subplot(2,1,1);
-%                 plot(Y1,'-b');
-%                 hold on;
-%                 plot(Y2s,'r');
-%                 ylim([-1,1]);
-%                 hold off;
-%             subplot(2,1,2);
-%                 plot(XC,'-m');
-%                 ylim([-250,250]);
-%             
-%         pause(0.01);
-        
-        A = TRAPZ(X,Y1.*Y2s);
-        XC(N0+tau) = A;
-        XC_Lags(N0+tau) = tau;
-    end
-end

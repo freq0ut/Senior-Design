@@ -1,15 +1,16 @@
-function [yMax, xMax] = MAXIMUM(X,Y)
+function [yMax, xMax] = MAXIMUM2(X,Y,x1,x2)
     % ***COMPLETED***
     % This function calculates the maximum Y value (yMax) and its
     % corresponding X location (xMax).
-    
-    if length(X) ~= length(Y);
+
+    if ( length(X) ~= length(Y) );
         error('X and Y are not the same length');
     end
     
+    xMax = 0;
     yMax = 0;
     
-    for x=1:length(X);
+    for x=x1:x2;
        yTest = Y(x);
        
        if (yTest>yMax)
@@ -17,4 +18,5 @@ function [yMax, xMax] = MAXIMUM(X,Y)
            xMax = x;
        end
     end
+
 end

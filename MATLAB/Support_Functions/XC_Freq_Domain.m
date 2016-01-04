@@ -11,7 +11,7 @@ N = 2^10;% Total number of samples
 fS = 1e6;% ADC sampling frequency [Hz]
 
 % Ultrasonic Acoustic Bacon
-fPing = 20e3;% Pinger frequency [Hz]
+fPing = 40e3;% Pinger frequency [Hz]
 SNR_dB = 10;% Received signal signal-to-noise-ratio [dB]
 t0 = 0.4/fPing;% Time delay [s]
 

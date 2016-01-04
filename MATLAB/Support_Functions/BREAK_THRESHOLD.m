@@ -20,7 +20,7 @@ function iBreak = BREAK_THRESHOLD(Y,THD,DIR)
 
             if ( yTest > THD )
                 iBreak = i;
-                i = length(Y)+1;
+                break;
             end
 
             i = i+1;
@@ -34,7 +34,7 @@ function iBreak = BREAK_THRESHOLD(Y,THD,DIR)
 
             if ( yTest > THD )
                 iBreak = i;
-                i = 0;
+                break;
             end
 
             i = i-1;
