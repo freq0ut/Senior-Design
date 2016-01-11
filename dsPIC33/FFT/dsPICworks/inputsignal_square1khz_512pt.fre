@@ -1,0 +1,11 @@
+Remark                : FFT(inputsignal_square1khz_512pt.tim)
+Number of record      : 512
+Record type number    : CREAL128RECT(W)
+Signal frequency      : 1000 Hz
+Sampling rate         : 10000 Hz
+File format           : Binary
+Frame size            : 512
+Frame interval        : 512
+Window function       : Rectangular
+Data begin            #
+ÿ

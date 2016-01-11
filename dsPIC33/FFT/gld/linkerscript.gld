@@ -1,0 +1,16 @@
+/* This is a boilerplate script that sets up
+   search paths relative to the source file
+   directory, and includes a standard set
+   of libraries for these examples.
+   
+   This approach avoids absolute paths and
+   allows the examples to build properly
+   no matter where MPLAB C30 is installed. */
+   
+SEARCH_DIR(..\..\..\..\lib)
+SEARCH_DIR(..\..\..\..\support\gld)
+INPUT(-ldsp)
+INPUT(-lpic30)
+INPUT(-lm)
+INPUT(-lc)
+INCLUDE p30f6014A.gld
