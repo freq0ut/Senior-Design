@@ -8,14 +8,33 @@ close all;
 clear all;
 clc;
 
-N = 256;
+fileID = fopen('sigCmpx.csv','r');
+
+    CSV_File = textscan(fileID,'%s %s');
+    
+    N = size(CSV_File{1,1},1)/2;
+    IQ_Data = zeros(1,N);
+    
+    for i = 0:N-1;
+        tempCell = textscan(CSV_File{1,2}{2*i+1}(3:6),'%c');
+        tempStringHex = char(tempCell);
+        tempBin = HEX_2_BIN(tempStringHex);
+        IQ_Data(i+1) = BIN_2_DEC(tempBin);
+        
+        tempCell = textscan(CSV_File{1,2}{2*i+2}(3:6),'%c');
+        tempStringHex = char(tempCell);
+        tempBin = HEX_2_BIN(tempStringHex);
+        IQ_Data(i+1) = IQ_Data(i+1) + 1i*BIN_2_DEC(tempBin);
+    end
+
+fclose(fileID);
 
 fS = 1e3;
 Ts = 1/fS;
 
 f0 = 1/((N-1)*Ts);
 
-f = f0*(-N/2:N/2-1);
+f = f0*(0:N-1);
 t = Ts*(0:N-1);
 
 y = ones(1,N);
@@ -25,7 +44,7 @@ for i=0:N-1;
     end
 end
 
-Y = fftshift(fft(y)) / N;
+Y = fft(y) / N;
 
 fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
     subplot(2,2,1);
@@ -44,4 +63,12 @@ fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
     	xlabel('Frequency [Hz]');
     	ylabel('Magnitude [Volts]');
         titleString = sprintf('FREQUENCY\nMATLAB Simulated Input Signal');
+        title(titleString);
+    subplot(2,2,4);
+    	stem(f,abs(IQ_Data)/2^14,'-r');
+    	grid on;
+    	grid minor;
+    	xlabel('Frequency [Hz]');
+    	ylabel('Magnitude [Volts]');
+        titleString = sprintf('FREQUENCY\ndsPIC Simulated Output Data');
         title(titleString);
