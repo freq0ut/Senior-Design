@@ -9,26 +9,26 @@ close all;
 clear all;
 clc;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%%%%%%% READ IN MPLABX CSV HEX FILE %%%%%%%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%% READ IN DATA FROM THE .CSV FILE %%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 fileID = fopen('sigCmpx.csv','r');% Open file
 
-    CSV_File = textscan(fileID,'%s %s');% Read in entire CSV file into memory as a cell array
+    Data_File = textscan(fileID,'%s %s');% Read in entire CSV file into memory as a cell array
     
     N = size(CSV_File{1,1},1)/2;% Total number of samples
     Y_DSPIC = zeros(1,N);% Declare and initialize IQ Data array
 
     for i = 0:N-1;
         % In-Phase
-        tempCell = textscan(CSV_File{1,2}{2*i+1}(3:6),'%c');% Extract a specific cell in the cell array
+        tempCell = textscan(Data_File{1,2}{2*i+1}(3:6),'%c');% Extract a specific cell in the cell array
         tempStringHex = char(tempCell);% Convert the cell to a string of characters (hexadecimal)
         tempBin = HEX_2_BIN(tempStringHex);% Convert the string of characters (hexadecimal) to integer (binary)
         Y_DSPIC(i+1) = BIN_2_DEC(tempBin);% Convert the integer binary (2s Comp) to integer decimal 
         
         % Quadrature
-        tempCell = textscan(CSV_File{1,2}{2*i+2}(3:6),'%c');
+        tempCell = textscan(Data_File{1,2}{2*i+2}(3:6),'%c');
         tempStringHex = char(tempCell);
         tempBin = HEX_2_BIN(tempStringHex);
         Y_DSPIC(i+1) = Y_DSPIC(i+1) + 1i*BIN_2_DEC(tempBin);
@@ -49,7 +49,7 @@ y_DSPIC = ifft(Y_DSPIC) * N;
 fS = 10e3;% Sampling frequency [Hz]
 Ts = 1/fS;% Sampling interval [s]
 
-f0 = 1/((N-1)*Ts);% Frequency resolution [Hz]
+f0 = fS/(N-1);% Frequency resolution [Hz]
 
 f = f0*(0:N-1);% Frequency Array (single-sided)
 t = Ts*(0:N-1);% Time Array
