@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project>
-  <executable name="dist/default/debug/Joshua_FFT_Example.X.debug.elf">
+  <executable name="dist/default/debug/Joshua_dsPIC30F_FFT_Example_Code.X.debug.elf">
     <memory name="data">
       <units>bytes</units>
       <length>8192</length>
@@ -11,8 +11,8 @@
     <memory name="program">
       <units>bytes</units>
       <length>147072</length>
-      <used>2655</used>
-      <free>144417</free>
+      <used>2661</used>
+      <free>144411</free>
     </memory>
   </executable>
 </project>

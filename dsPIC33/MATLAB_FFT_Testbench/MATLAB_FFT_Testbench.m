@@ -9,6 +9,8 @@ close all;
 clear all;
 clc;
 
+addpath('/Users/betio32/Documents/myGitHub/Senior-Design/MATLAB/Support_Functions/FFT/');
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% READ IN DATA FROM THE .CSV FILE %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -17,7 +19,7 @@ fileID = fopen('sigCmpx.csv','r');% Open file
 
     Data_File = textscan(fileID,'%s %s');% Read in entire CSV file into memory as a cell array
     
-    N = size(CSV_File{1,1},1)/2;% Total number of samples
+    N = size(Data_File{1,1},1)/2;% Total number of samples
     Y_DSPIC = zeros(1,N);% Declare and initialize IQ Data array
 
     for i = 0:N-1;
@@ -35,6 +37,9 @@ fileID = fopen('sigCmpx.csv','r');% Open file
     end
 
 fclose(fileID);% Close file
+
+% Scaling data
+Y_DSPIC = Y_DSPIC / 2^14;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% TAKING THE INVERSE FFT OF THE MPLABX DSPIC30F DATA %%%%%%%%%%
@@ -75,6 +80,7 @@ fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
     	grid on;
     	grid minor;
         xlim([t(1),t(end)]);
+        ylim([-1.1,1.1]);
     	xlabel('Time [s]');
     	ylabel('Amplitude [V]');
         titleString = sprintf('TEMPORAL\nMATLAB');
@@ -84,6 +90,7 @@ fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
     	grid on;
     	grid minor;
         xlim([t(1),t(end)]);
+        ylim([-1.1,1.1]);
     	xlabel('Time [s]');
     	ylabel('Amplitude [V]');
         titleString = sprintf('TEMPORAL\ndsPIC');

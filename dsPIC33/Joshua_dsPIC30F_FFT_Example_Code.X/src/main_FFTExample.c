@@ -49,15 +49,18 @@
 *
 *
 **********************************************************************/
+
 #include <p30Fxxxx.h>
 #include <dsp.h>
 #include "fft.h"
 
-/* Device configuration register macros for building the hex file */
-_FOSC(CSW_FSCM_OFF & XT_PLL8);          /* XT with 8xPLL oscillator, Failsafe clock off */
-_FWDT(WDT_OFF);                         /* Watchdog timer disabled */
-_FBORPOR(PBOR_OFF & MCLR_EN);           /* Brown-out reset disabled, MCLR reset enabled */
-_FGS(CODE_PROT_OFF);                    /* Code protect disabled */
+/*******************************************************************
+** Device configuration register macros for building the hex file **
+*******************************************************************/
+_FOSC(CSW_FSCM_OFF & XT_PLL8);// XT with 8xPLL oscillator, Failsafe clock off
+_FWDT(WDT_OFF);               // Watchdog timer disabled
+_FBORPOR(PBOR_OFF & MCLR_EN); // Brown-out reset disabled, MCLR reset enabled
+_FGS(CODE_PROT_OFF);          // Code protect disabled
 
 
 /* Extern definitions */
@@ -75,57 +78,60 @@ extern const fractcomplex twiddleFactors[FFT_BLOCK_LENGTH/2]	/* Twiddle Factor a
 __attribute__ ((space(auto_psv), aligned (FFT_BLOCK_LENGTH*2)));
 #endif
 
-int	peakFrequencyBin = 0;				/* Declare post-FFT variables to compute the */
-unsigned long peakFrequency = 0;			/* frequency of the largest spectral component */
+int	peakFrequencyBin = 0;
+unsigned long peakFrequency = 0;
 
-int main(void)
-{
+int main(void) {
 	int i = 0;
-	fractional *p_real = &sigCmpx[0].real ;
-	fractcomplex *p_cmpx = &sigCmpx[0] ;
+	fractional *p_real = &sigCmpx[0].real;
+	fractcomplex *p_cmpx = &sigCmpx[0];
 
+	// Generate TwiddleFactor Coefficients (Only once at stary-up)
+	#ifndef FFTTWIDCOEFFS_IN_PROGMEM
+		TwidFactorInit (LOG2_BLOCK_LENGTH, &twiddleFactors[0], 0);
+	#endif
 
-#ifndef FFTTWIDCOEFFS_IN_PROGMEM					/* Generate TwiddleFactor Coefficients */
-	TwidFactorInit (LOG2_BLOCK_LENGTH, &twiddleFactors[0], 0);	/* We need to do this only once at start-up */
-#endif
-
-	for ( i = 0; i < FFT_BLOCK_LENGTH; i++ )/* The FFT function requires input data */
-	{					/* to be in the fractional fixed-point range [-0.5, +0.5]*/
-		*p_real = *p_real >>1 ;		/* So, we shift all data samples by 1 bit to the right. */
-		*p_real++;			/* Should you desire to optimize this process, perform */
-	}					/* data scaling when first obtaining the time samples */
-						/* Or within the BitReverseComplex function source code */
-
-	p_real = &sigCmpx[(FFT_BLOCK_LENGTH/2)-1].real ;	/* Set up pointers to convert real array */
-	p_cmpx = &sigCmpx[FFT_BLOCK_LENGTH-1] ; /* to a complex array. The input array initially has all */
-						/* the real input samples followed by a series of zeros */
-
-
-	for ( i = FFT_BLOCK_LENGTH; i > 0; i-- ) /* Convert the Real input sample array */
-	{					/* to a Complex input sample array  */
-		(*p_cmpx).real = (*p_real--);	/* We will simpy zero out the imaginary  */
-		(*p_cmpx--).imag = 0x0000;	/* part of each data sample */
+	// Scaling the input data to be in the range of [-0.5, +0.5] by right bit shifting once.
+	// For optimization: 
+	//		1. Scale when first obtaining the time samples. 
+	//		2. Or, within the BitReverseComplex function source code.
+	for ( i=0; i < FFT_BLOCK_LENGTH; i++ ) {
+		*p_real = *p_real >>1;
+		*p_real++;
 	}
 
-	/* Perform FFT operation */
-#ifndef FFTTWIDCOEFFS_IN_PROGMEM
-	FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], &twiddleFactors[0], COEFFS_IN_DATA);
-#else
-	FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], (fractcomplex *) __builtin_psvoffset(&twiddleFactors[0]), (int) __builtin_psvpage(&twiddleFactors[0]));
-#endif
+	// Set up pointers to convert real array to a complex array.
+	// The input array initially has all the real input samples followed by a series of zeros. 
+	p_real = &sigCmpx[(FFT_BLOCK_LENGTH/2)-1].real;
+	p_cmpx = &sigCmpx[FFT_BLOCK_LENGTH-1];
 
-	/* Store output samples in bit-reversed order of their addresses */
+	// Convert the Real input sample array to a Complex input sample array.
+	// We do this by zeroing out the imaginary part of each data sample.
+	for ( i = FFT_BLOCK_LENGTH; i > 0; i-- ) {
+		(*p_cmpx).real = (*p_real--);
+		(*p_cmpx--).imag = 0x0000;
+	}
+
+    i = 0;
+    
+	// Perform FFT operation
+	#ifndef FFTTWIDCOEFFS_IN_PROGMEM
+		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], &twiddleFactors[0], COEFFS_IN_DATA);
+	#else
+		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], (fractcomplex *) __builtin_psvoffset(&twiddleFactors[0]), (int) __builtin_psvpage(&twiddleFactors[0]));
+	#endif
+
+	// Store output samples in bit-reversed order of their addresses
 	BitReverseComplex (LOG2_BLOCK_LENGTH, &sigCmpx[0]);
 
-	/* Compute the square magnitude of the complex FFT output array so we have a Real output vetor */
+	// Compute the square magnitude of the complex FFT output array so we have a Real output vector
 	SquareMagnitudeCplx(FFT_BLOCK_LENGTH, &sigCmpx[0], &sigCmpx[0].real);
 
-	/* Find the frequency Bin ( = index into the SigCmpx[] array) that has the largest energy*/
-	/* i.e., the largest spectral component */
+	// Find the frequency Bin ( = index into the SigCmpx[] array) that has the largest energy
 	VectorMax(FFT_BLOCK_LENGTH/2, &sigCmpx[0].real, &peakFrequencyBin);
 
-	/* Compute the frequency (in Hz) of the largest spectral component */
+	// Compute the frequency (in Hz) of the largest spectral component
 	peakFrequency = peakFrequencyBin*(SAMPLING_RATE/FFT_BLOCK_LENGTH);
 
-        while (1);	/* Place a breakpoint here and observe the watch window variables */
+	while (1);
 }

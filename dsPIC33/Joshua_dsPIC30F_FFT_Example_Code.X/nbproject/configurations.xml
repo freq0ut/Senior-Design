@@ -4,7 +4,7 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Header Files"
                    projectFiles="true">
-      <itemPath>/Users/betio32/Documents/myGitHub/Senior-Design/dsPIC33/Joshua_FFT_Example.X/src/fft.h</itemPath>
+      <itemPath>/Users/betio32/Documents/myGitHub/Senior-Design/dsPIC33/Joshua_dsPIC30F_FFT_Example_Code.X/src/fft.h</itemPath>
     </logicalFolder>
     <logicalFolder name="LinkerScript"
                    displayName="Linker Files"
