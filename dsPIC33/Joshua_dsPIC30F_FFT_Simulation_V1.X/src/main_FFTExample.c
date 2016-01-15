@@ -63,19 +63,18 @@ _FBORPOR(PBOR_OFF & MCLR_EN); // Brown-out reset disabled, MCLR reset enabled
 _FGS(CODE_PROT_OFF);          // Code protect disabled
 
 
-/* Extern definitions */
-extern fractcomplex sigCmpx[FFT_BLOCK_LENGTH] 		/* Typically, the input signal to an FFT  */
-__attribute__ ((section (".ydata, data, ymemory"), 	/* routine is a complex array containing samples */
-aligned (FFT_BLOCK_LENGTH * 2 *2)));      		/* of an input signal. For this example, */
-							/* we will provide the input signal in an */
-							/* array declared in Y-data space. */
-/* Global Definitions */
+// Extern Definitions
+extern fractcomplex sigCmpx[FFT_BLOCK_LENGTH]// Real input signal, stored in a complex array in Y-Space
+__attribute__ ((section (".ydata, data, ymemory"),
+aligned (FFT_BLOCK_LENGTH*2*2)));
+
+// Global Definitions
 #ifndef FFTTWIDCOEFFS_IN_PROGMEM
-fractcomplex twiddleFactors[FFT_BLOCK_LENGTH/2] 	/* Declare Twiddle Factor array in X-space*/
-__attribute__ ((section (".xbss, bss, xmemory"), aligned (FFT_BLOCK_LENGTH*2)));
+	fractcomplex twiddleFactors[FFT_BLOCK_LENGTH/2]// Declare Twiddle Factor array in X-Space
+	__attribute__ ((section (".xbss, bss, xmemory"), aligned (FFT_BLOCK_LENGTH*2)));
 #else
-extern const fractcomplex twiddleFactors[FFT_BLOCK_LENGTH/2]	/* Twiddle Factor array in Program memory */
-__attribute__ ((space(auto_psv), aligned (FFT_BLOCK_LENGTH*2)));
+	extern const fractcomplex twiddleFactors[FFT_BLOCK_LENGTH/2]// Twiddle Factor array in Program memory
+	__attribute__ ((space(auto_psv), aligned (FFT_BLOCK_LENGTH*2)));
 #endif
 
 int	peakFrequencyBin = 0;
@@ -111,8 +110,6 @@ int main(void) {
 		(*p_cmpx).real = (*p_real--);
 		(*p_cmpx--).imag = 0x0000;
 	}
-
-    i = 0;
     
 	// Perform FFT operation
 	#ifndef FFTTWIDCOEFFS_IN_PROGMEM
