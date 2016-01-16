@@ -6,7 +6,7 @@ Tool Name:
 Command:
   -p30F6012 \
   -o \
-  dist/default/debug/Joshua_dsPIC30F_FFT_Example_Code.X.debug.elf \
+  dist/default/debug/Joshua_dsPIC30F_FFT_Simulation_V2.X.debug.elf \
   -L/Applications/microchip/xc16/v1.25/bin/bin/.. \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../lib \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../support/PIC24E/gld \
@@ -15,9 +15,9 @@ Command:
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../support/dsPIC30F/gld \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../support/dsPIC33E/gld \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../support/dsPIC33F/gld \
-  build/default/debug/src/inputsignal_square1khz.o \
   build/default/debug/src/main_FFTExample.o \
   build/default/debug/src/twiddleFactors.o \
+  build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o \
   /Applications/microchip/xc16/v1.25/lib/libdsp-elf.a \
   --defsym=__MPLAB_BUILD=1 \
   --defsym=__MPLAB_DEBUG=1 \
@@ -35,7 +35,7 @@ Command:
   --stackguard=16 \
   --no-force-link \
   --smart-io \
-  -Map=dist/default/debug/Joshua_dsPIC30F_FFT_Example_Code.X.debug.map \
+  -Map=dist/default/debug/Joshua_dsPIC30F_FFT_Simulation_V2.X.debug.map \
   --report-mem \
   --memorysummary \
   dist/default/debug/memoryfile.xml \
@@ -70,11 +70,11 @@ Program Memory  [Origin = 0x100, Length = 0x17f00]
 section                    address   length (PC units)   length (bytes) (dec)
 -------                    -------   -----------------   --------------------
 .text                        0x100               0x19c           0x26a  (618)
-.text                        0x29c                0x98            0xe4  (228)
+.text                        0x29c                0x94            0xde  (222)
 .const                       0x400               0x200           0x300  (768)
 .dinit                       0x600               0x2ba           0x417  (1047)
 
-                     Total program memory used (bytes):          0xa65  (2661) 1%
+                     Total program memory used (bytes):          0xa5f  (2655) 1%
 
 
 Data Memory  [Origin = 0x800, Length = 0x2000]
@@ -162,9 +162,9 @@ FICD             0xf8000c           0x000002
 
 Linker script and memory map
 
-LOAD build/default/debug/src/inputsignal_square1khz.o
 LOAD build/default/debug/src/main_FFTExample.o
 LOAD build/default/debug/src/twiddleFactors.o
+LOAD build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
 LOAD /Applications/microchip/xc16/v1.25/lib/libdsp-elf.a
                     0x0001                  __MPLAB_BUILD = 0x1
                     0x0001                  __MPLAB_DEBUG = 0x1
@@ -273,24 +273,24 @@ userdata
 .comment
  *(.comment)
 
-.debug_info       0x000000        0x649
+.debug_info       0x000000        0x64d
  *(.debug_info)
- .debug_info      0x000000        0x1a9 build/default/debug/src/inputsignal_square1khz.o
- .debug_info      0x0001a9        0x2f3 build/default/debug/src/main_FFTExample.o
- .debug_info      0x00049c        0x1ad build/default/debug/src/twiddleFactors.o
+ .debug_info      0x000000        0x2f4 build/default/debug/src/main_FFTExample.o
+ .debug_info      0x0002f4        0x1ae build/default/debug/src/twiddleFactors.o
+ .debug_info      0x0004a2        0x1ab build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
  *(.gnu.linkonce.wi.*)
 
-.debug_abbrev     0x000000        0x1b3
+.debug_abbrev     0x000000        0x1b1
  *(.debug_abbrev)
- .debug_abbrev    0x000000         0x6b build/default/debug/src/inputsignal_square1khz.o
- .debug_abbrev    0x00006b         0xd6 build/default/debug/src/main_FFTExample.o
- .debug_abbrev    0x000141         0x72 build/default/debug/src/twiddleFactors.o
+ .debug_abbrev    0x000000         0xd6 build/default/debug/src/main_FFTExample.o
+ .debug_abbrev    0x0000d6         0x72 build/default/debug/src/twiddleFactors.o
+ .debug_abbrev    0x000148         0x69 build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
 
-.debug_line       0x000000        0x2a5
+.debug_line       0x000000        0x2fa
  *(.debug_line)
- .debug_line      0x000000         0x90 build/default/debug/src/inputsignal_square1khz.o
- .debug_line      0x000090        0x18d build/default/debug/src/main_FFTExample.o
- .debug_line      0x00021d         0x88 build/default/debug/src/twiddleFactors.o
+ .debug_line      0x000000        0x185 build/default/debug/src/main_FFTExample.o
+ .debug_line      0x000185         0x88 build/default/debug/src/twiddleFactors.o
+ .debug_line      0x00020d         0xed build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
 
 .debug_frame      0x000000         0x24
  *(.debug_frame)
@@ -310,11 +310,11 @@ userdata
                   0x000000         0xaf
  *(.debug_pubnames)
  .debug_pubnames
-                  0x000000         0x1e build/default/debug/src/inputsignal_square1khz.o
+                  0x000000         0x6c build/default/debug/src/main_FFTExample.o
  .debug_pubnames
-                  0x00001e         0x6c build/default/debug/src/main_FFTExample.o
+                  0x00006c         0x25 build/default/debug/src/twiddleFactors.o
  .debug_pubnames
-                  0x00008a         0x25 build/default/debug/src/twiddleFactors.o
+                  0x000091         0x1e build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
 
 .debug_ranges
  *(.debug_ranges)
@@ -1445,27 +1445,27 @@ LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/liblega-pic30-elf.a
 LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/libm-elf.a
 LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/liblega-c-elf.a
 END GROUP
-OUTPUT(dist/default/debug/Joshua_dsPIC30F_FFT_Example_Code.X.debug.elf elf32-pic30)
+OUTPUT(dist/default/debug/Joshua_dsPIC30F_FFT_Simulation_V2.X.debug.elf elf32-pic30)
 LOAD default_isr
 LOAD data_init
 
 .debug_pubtypes
                   0x000018         0x96
  .debug_pubtypes
-                  0x000018         0x32 build/default/debug/src/inputsignal_square1khz.o
+                  0x000018         0x32 build/default/debug/src/main_FFTExample.o
  .debug_pubtypes
-                  0x00004a         0x32 build/default/debug/src/main_FFTExample.o
+                  0x00004a         0x32 build/default/debug/src/twiddleFactors.o
  .debug_pubtypes
-                  0x00007c         0x32 build/default/debug/src/twiddleFactors.o
+                  0x00007c         0x32 build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
 
 __c30_signature
                   0x0000ae         0x36
  __c30_signature
-                  0x0000ae          0x6 build/default/debug/src/inputsignal_square1khz.o
+                  0x0000ae          0x6 build/default/debug/src/main_FFTExample.o
  __c30_signature
-                  0x0000b4          0x6 build/default/debug/src/main_FFTExample.o
+                  0x0000b4          0x6 build/default/debug/src/twiddleFactors.o
  __c30_signature
-                  0x0000ba          0x6 build/default/debug/src/twiddleFactors.o
+                  0x0000ba          0x6 build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
  __c30_signature
                   0x0000c0          0x6 /Applications/microchip/xc16/v1.25/lib/libdsp-elf.a(vmax.obj)
  __c30_signature
@@ -1480,7 +1480,7 @@ __c30_signature
                   0x0000de          0x6 /Applications/microchip/xc16/v1.25/bin/bin/../../lib/liblega-pic30-elf.a(data_init_standard.o)
 
 .ydata              0x2000        0x400
- .ydata             0x2000        0x400 build/default/debug/src/inputsignal_square1khz.o
+ .ydata             0x2000        0x400 build/default/debug/_ext/102761262/chan1_input_cosine40kHz.o
                     0x2000                  _sigCmpx
 
 .nbss               0x0800          0x6
@@ -1495,6 +1495,6 @@ __c30_signature
 .dinit            0x000600        0x2ba
  .dinit           0x000600        0x2ba data_init
 
-.text             0x00029c         0x98
- .text            0x00029c         0x98 build/default/debug/src/main_FFTExample.o
+.text             0x00029c         0x94
+ .text            0x00029c         0x94 build/default/debug/src/main_FFTExample.o
                   0x00029c                  _main

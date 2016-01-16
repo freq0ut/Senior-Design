@@ -6,7 +6,7 @@ Tool Name:
 Command:
   -p30F6012 \
   -o \
-  dist/default/production/Joshua_dsPIC30F_FFT_Example_Code.X.production.elf \
+  dist/default/production/Joshua_dsPIC30F_FFT_Simulation_V2.X.production.elf \
   -L/Applications/microchip/xc16/v1.25/bin/bin/.. \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../lib \
   -L/Applications/microchip/xc16/v1.25/bin/bin/../../support/PIC24E/gld \
@@ -32,7 +32,7 @@ Command:
   --stackguard=16 \
   --no-force-link \
   --smart-io \
-  -Map=dist/default/production/Joshua_dsPIC30F_FFT_Example_Code.X.production.map \
+  -Map=dist/default/production/Joshua_dsPIC30F_FFT_Simulation_V2.X.production.map \
   --report-mem \
   --memorysummary \
   dist/default/production/memoryfile.xml \
@@ -267,11 +267,11 @@ userdata
 .comment
  *(.comment)
 
-.debug_info       0x000000        0x649
+.debug_info       0x000000        0x64c
  *(.debug_info)
- .debug_info      0x000000        0x1a9 build/default/production/src/inputsignal_square1khz.o
- .debug_info      0x0001a9        0x2f3 build/default/production/src/main_FFTExample.o
- .debug_info      0x00049c        0x1ad build/default/production/src/twiddleFactors.o
+ .debug_info      0x000000        0x1aa build/default/production/src/inputsignal_square1khz.o
+ .debug_info      0x0001aa        0x2f4 build/default/production/src/main_FFTExample.o
+ .debug_info      0x00049e        0x1ae build/default/production/src/twiddleFactors.o
  *(.gnu.linkonce.wi.*)
 
 .debug_abbrev     0x000000        0x1b3
@@ -1439,7 +1439,7 @@ LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/liblega-pic30-elf.a
 LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/libm-elf.a
 LOAD /Applications/microchip/xc16/v1.25/bin/bin/../../lib/liblega-c-elf.a
 END GROUP
-OUTPUT(dist/default/production/Joshua_dsPIC30F_FFT_Example_Code.X.production.elf elf32-pic30)
+OUTPUT(dist/default/production/Joshua_dsPIC30F_FFT_Simulation_V2.X.production.elf elf32-pic30)
 LOAD default_isr
 LOAD data_init
 

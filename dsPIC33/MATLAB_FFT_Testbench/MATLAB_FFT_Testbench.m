@@ -51,7 +51,7 @@ y_DSPIC = ifft(Y_DSPIC) * N;
 %%%%%%%%%% CREATING MATLAB SIMULATED SIGNAL FOR COMPARISON %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fS = 10e3;% Sampling frequency [Hz]
+fS = 1e6;% Sampling frequency [Hz]
 Ts = 1/fS;% Sampling interval [s]
 
 f0 = fS/(N-1);% Frequency resolution [Hz]
@@ -59,14 +59,16 @@ f0 = fS/(N-1);% Frequency resolution [Hz]
 f = f0*(0:N-1);% Frequency Array (single-sided)
 t = Ts*(0:N-1);% Time Array
 
-% Creating a 1kHz square wave (50% duty cycle) with 10 samples per period
-% with ZERO DC offset.
-y_MATLAB = ones(1,N);
-for i=0:N-1;
-    if (mod(i,10) >= 5)
-        y_MATLAB(i+1) = -1;
-    end
-end
+% % Creating a 1kHz square wave (50% duty cycle) with 10 samples per period
+% % with ZERO DC offset.
+% y_MATLAB = ones(1,N);
+% for i=0:N-1;
+%     if (mod(i,10) >= 5)
+%         y_MATLAB(i+1) = -1;
+%     end
+% end
+
+y_MATLAB = cos(2*pi*40e3*t);
 
 Y_MATLAB = fft(y_MATLAB) / N;
 
@@ -86,7 +88,7 @@ fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
         titleString = sprintf('TEMPORAL\nMATLAB');
         title(titleString);
     subplot(2,2,2);
-    	stem(t,y_DSPIC,'-b');
+    	stem(t,real(y_DSPIC),'-b');
     	grid on;
     	grid minor;
         xlim([t(1),t(end)]);

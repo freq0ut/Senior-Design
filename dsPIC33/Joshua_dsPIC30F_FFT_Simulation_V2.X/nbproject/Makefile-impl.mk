@@ -24,7 +24,7 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 
 
 # Project Name
-PROJECTNAME=Joshua_dsPIC30F_FFT_Example_Code.X
+PROJECTNAME=Joshua_dsPIC30F_FFT_Simulation_V2.X
 
 # Active Configuration
 DEFAULTCONF=default

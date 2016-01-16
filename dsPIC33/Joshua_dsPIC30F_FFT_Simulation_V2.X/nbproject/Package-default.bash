@@ -10,9 +10,9 @@ CND_CONF=default
 CND_DISTDIR=dist
 TMPDIR=build/${CND_CONF}/${IMAGE_TYPE}/tmp-packaging
 TMPDIRNAME=tmp-packaging
-OUTPUT_PATH=dist/${CND_CONF}/${IMAGE_TYPE}/Joshua_dsPIC30F_FFT_Example_Code.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
-OUTPUT_BASENAME=Joshua_dsPIC30F_FFT_Example_Code.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
-PACKAGE_TOP_DIR=joshuadspic30ffftexamplecode.x/
+OUTPUT_PATH=dist/${CND_CONF}/${IMAGE_TYPE}/Joshua_dsPIC30F_FFT_Simulation_V2.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+OUTPUT_BASENAME=Joshua_dsPIC30F_FFT_Simulation_V2.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}
+PACKAGE_TOP_DIR=joshuadspic30ffftsimulationv2.x/
 
 # Functions
 function checkReturnCode
@@ -57,15 +57,15 @@ mkdir -p ${TMPDIR}
 
 # Copy files and create directories and links
 cd "${TOP}"
-makeDirectory ${TMPDIR}/joshuadspic30ffftexamplecode.x/bin
+makeDirectory ${TMPDIR}/joshuadspic30ffftsimulationv2.x/bin
 copyFileToTmpDir "${OUTPUT_PATH}" "${TMPDIR}/${PACKAGE_TOP_DIR}bin/${OUTPUT_BASENAME}" 0755
 
 
 # Generate tar file
 cd "${TOP}"
-rm -f ${CND_DISTDIR}/${CND_CONF}/package/joshuadspic30ffftexamplecode.x.tar
+rm -f ${CND_DISTDIR}/${CND_CONF}/package/joshuadspic30ffftsimulationv2.x.tar
 cd ${TMPDIR}
-tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/package/joshuadspic30ffftexamplecode.x.tar *
+tar -vcf ../../../../${CND_DISTDIR}/${CND_CONF}/package/joshuadspic30ffftsimulationv2.x.tar *
 checkReturnCode
 
 # Cleanup
