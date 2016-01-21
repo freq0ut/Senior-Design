@@ -113,3 +113,18 @@ fig1 = figure('units','normalized','outerposition',[0 0 1 1]);
     	ylabel('Magnitude [Volts]');
         titleString = sprintf('FREQUENCY\ndsPIC');
         title(titleString);
+
+fig2 = figure('units','normalized','outerposition',[0 0 1 1]);
+    hold on;
+    stem(f,real(Y_MATLAB)-real(Y_DSPIC),'-b');
+    stem(f,imag(Y_MATLAB)-imag(Y_DSPIC),'-r');
+    grid on;
+    grid minor;
+    xlim([f(1),f(end)]);
+    %ylim([-1.1,1.1]);
+    xlabel('Frequency [Hz]');
+    ylabel('Error [V]');
+    legend({'Real Err','Imag Err'})
+    titleString = sprintf('FREQUENCY\nError');
+    title(titleString);
+    hold off;
