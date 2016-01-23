@@ -44,9 +44,9 @@ int main(void) {
 
     while (1) {
         PORTBbits.RB8 = 0;
-        ms_delay(200);
+        ms_delay(100);
         PORTBbits.RB8 = 1;
-        ms_delay(200);
+        ms_delay(100);
     }
     
     return 0;
