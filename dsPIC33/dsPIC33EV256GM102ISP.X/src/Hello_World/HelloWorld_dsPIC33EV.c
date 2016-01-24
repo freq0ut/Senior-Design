@@ -6,8 +6,7 @@
 *   Turns an LED on and off using a delay.
 */
 
-#include "JPS_dsPIC33EV_config.h"
-#include <p33Exxxx.h>
+#include "config.h"
 
 void ms_delay(int N);
 
@@ -44,9 +43,9 @@ int main(void) {
 
     while (1) {
         PORTBbits.RB8 = 0;
-        ms_delay(200);
+        ms_delay(1);
         PORTBbits.RB8 = 1;
-        ms_delay(200);
+        ms_delay(1);
     }
     
     return 0;

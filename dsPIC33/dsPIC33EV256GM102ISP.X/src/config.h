@@ -1,9 +1,7 @@
 
 // DSPIC33EV256GM102 Configuration Bit Settings
 
-// 'C' source line config statements
-
-#include <xc.h>
+#include <p33EV256GM102.h>
 
 // FSEC
 #pragma config BWRP = OFF               // Boot Segment Write-Protect Bit (Boot Segment may be written)
@@ -19,7 +17,7 @@
 #pragma config BSLIM = 0x1FFF           // Boot Segment Code Flash Page Address Limit Bits (Boot Segment Flash Page Address Limit (0-0x1FFF))
 
 // FOSCSEL
-#pragma config FNOSC = FRC 				// Initial oscillator Source Selection Bits (Fast RC Oscillator)
+#pragma config FNOSC = FRC              // Initial oscillator Source Selection Bits (Fast RC Oscillator)
 #pragma config IESO = ON                // Two Speed Oscillator Start-Up Bit (Start up device with FRC,then automatically switch to user selected oscillator source)
 
 // FOSC
