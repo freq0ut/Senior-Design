@@ -45,17 +45,17 @@ OBJECTDIR=build/${CND_CONF}/${IMAGE_TYPE}
 DISTDIR=dist/${CND_CONF}/${IMAGE_TYPE}
 
 # Source Files Quoted if spaced
-SOURCEFILES_QUOTED_IF_SPACED=src/Hello_World/HelloWorld_dsPIC33EV.c
+SOURCEFILES_QUOTED_IF_SPACED=src/FFT/main_FFTExample.c src/FFT/twiddleFactors.c src/FFT/inputsignal_1_cosine40kHz.c src/FFT/inputsignal_2_cosine40kHz.c
 
 # Object Files Quoted if spaced
-OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o
-POSSIBLE_DEPFILES=${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d
+OBJECTFILES_QUOTED_IF_SPACED=${OBJECTDIR}/src/FFT/main_FFTExample.o ${OBJECTDIR}/src/FFT/twiddleFactors.o ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o
+POSSIBLE_DEPFILES=${OBJECTDIR}/src/FFT/main_FFTExample.o.d ${OBJECTDIR}/src/FFT/twiddleFactors.o.d ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d
 
 # Object Files
-OBJECTFILES=${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o
+OBJECTFILES=${OBJECTDIR}/src/FFT/main_FFTExample.o ${OBJECTDIR}/src/FFT/twiddleFactors.o ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o
 
 # Source Files
-SOURCEFILES=src/Hello_World/HelloWorld_dsPIC33EV.c
+SOURCEFILES=src/FFT/main_FFTExample.c src/FFT/twiddleFactors.c src/FFT/inputsignal_1_cosine40kHz.c src/FFT/inputsignal_2_cosine40kHz.c
 
 
 CFLAGS=
@@ -82,20 +82,62 @@ MP_LINKER_FILE_OPTION=,--script=p33EV256GM102.gld
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: compile
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o: src/Hello_World/HelloWorld_dsPIC33EV.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/src/Hello_World" 
-	@${RM} ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d 
-	@${RM} ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  src/Hello_World/HelloWorld_dsPIC33EV.c  -o ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -mno-eds-warn  -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
-	@${FIXDEPS} "${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+${OBJECTDIR}/src/FFT/main_FFTExample.o: src/FFT/main_FFTExample.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/main_FFTExample.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/main_FFTExample.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/main_FFTExample.c  -o ${OBJECTDIR}/src/FFT/main_FFTExample.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/main_FFTExample.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -mno-eds-warn  -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/main_FFTExample.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/twiddleFactors.o: src/FFT/twiddleFactors.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/twiddleFactors.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/twiddleFactors.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/twiddleFactors.c  -o ${OBJECTDIR}/src/FFT/twiddleFactors.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/twiddleFactors.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -mno-eds-warn  -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/twiddleFactors.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o: src/FFT/inputsignal_1_cosine40kHz.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/inputsignal_1_cosine40kHz.c  -o ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -mno-eds-warn  -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o: src/FFT/inputsignal_2_cosine40kHz.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/inputsignal_2_cosine40kHz.c  -o ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d"      -g -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -mno-eds-warn  -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 else
-${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o: src/Hello_World/HelloWorld_dsPIC33EV.c  nbproject/Makefile-${CND_CONF}.mk
-	@${MKDIR} "${OBJECTDIR}/src/Hello_World" 
-	@${RM} ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d 
-	@${RM} ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o 
-	${MP_CC} $(MP_EXTRA_CC_PRE)  src/Hello_World/HelloWorld_dsPIC33EV.c  -o ${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d"      -mno-eds-warn  -g -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
-	@${FIXDEPS} "${OBJECTDIR}/src/Hello_World/HelloWorld_dsPIC33EV.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+${OBJECTDIR}/src/FFT/main_FFTExample.o: src/FFT/main_FFTExample.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/main_FFTExample.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/main_FFTExample.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/main_FFTExample.c  -o ${OBJECTDIR}/src/FFT/main_FFTExample.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/main_FFTExample.o.d"      -mno-eds-warn  -g -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/main_FFTExample.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/twiddleFactors.o: src/FFT/twiddleFactors.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/twiddleFactors.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/twiddleFactors.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/twiddleFactors.c  -o ${OBJECTDIR}/src/FFT/twiddleFactors.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/twiddleFactors.o.d"      -mno-eds-warn  -g -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/twiddleFactors.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o: src/FFT/inputsignal_1_cosine40kHz.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/inputsignal_1_cosine40kHz.c  -o ${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d"      -mno-eds-warn  -g -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/inputsignal_1_cosine40kHz.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
+	
+${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o: src/FFT/inputsignal_2_cosine40kHz.c  nbproject/Makefile-${CND_CONF}.mk
+	@${MKDIR} "${OBJECTDIR}/src/FFT" 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d 
+	@${RM} ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o 
+	${MP_CC} $(MP_EXTRA_CC_PRE)  src/FFT/inputsignal_2_cosine40kHz.c  -o ${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o  -c -mcpu=$(MP_PROCESSOR_OPTION)  -MMD -MF "${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d"      -mno-eds-warn  -g -omf=elf -no-legacy-libc  -I"src" -O0 -msmart-io=1 -Wall -msfr-warn=off  
+	@${FIXDEPS} "${OBJECTDIR}/src/FFT/inputsignal_2_cosine40kHz.o.d" $(SILENT)  -rsi ${MP_CC_DIR}../ 
 	
 endif
 
@@ -114,14 +156,14 @@ endif
 # ------------------------------------------------------------------------------------
 # Rules for buildStep: link
 ifeq ($(TYPE_IMAGE), DEBUG_RUN)
-dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk    
+dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk  ../../../../../../../Program\ Files\ (x86)/Microchip/xc16/v1.25/lib/libdsp-elf.a  
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CC} $(MP_EXTRA_LD_PRE)  -o dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}      -mcpu=$(MP_PROCESSOR_OPTION)        -D__DEBUG -D__MPLAB_DEBUGGER_PK3=1  -omf=elf -no-legacy-libc  -I"src"  -mreserve=data@0x1000:0x101B -mreserve=data@0x101C:0x101D -mreserve=data@0x101E:0x101F -mreserve=data@0x1020:0x1021 -mreserve=data@0x1022:0x1023 -mreserve=data@0x1024:0x1027 -mreserve=data@0x1028:0x104F   -Wl,--local-stack,--defsym=__MPLAB_BUILD=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,--defsym=__MPLAB_DEBUGGER_PK3=1,$(MP_LINKER_FILE_OPTION),--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--report-mem,--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml$(MP_EXTRA_LD_POST) 
+	${MP_CC} $(MP_EXTRA_LD_PRE)  -o dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}    "..\..\..\..\..\..\..\Program Files (x86)\Microchip\xc16\v1.25\lib\libdsp-elf.a"  -mcpu=$(MP_PROCESSOR_OPTION)        -D__DEBUG -D__MPLAB_DEBUGGER_SIMULATOR=1  -omf=elf -no-legacy-libc  -I"src"     -Wl,--local-stack,--defsym=__MPLAB_BUILD=1,--defsym=__MPLAB_DEBUG=1,--defsym=__DEBUG=1,--defsym=__MPLAB_DEBUGGER_SIMULATOR=1,$(MP_LINKER_FILE_OPTION),--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--report-mem,--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml$(MP_EXTRA_LD_POST) 
 	
 else
-dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk   
+dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${OUTPUT_SUFFIX}: ${OBJECTFILES}  nbproject/Makefile-${CND_CONF}.mk  ../../../../../../../Program\ Files\ (x86)/Microchip/xc16/v1.25/lib/libdsp-elf.a 
 	@${MKDIR} dist/${CND_CONF}/${IMAGE_TYPE} 
-	${MP_CC} $(MP_EXTRA_LD_PRE)  -o dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}      -mcpu=$(MP_PROCESSOR_OPTION)        -omf=elf -no-legacy-libc  -I"src" -Wl,--local-stack,--defsym=__MPLAB_BUILD=1,$(MP_LINKER_FILE_OPTION),--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--report-mem,--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml$(MP_EXTRA_LD_POST) 
+	${MP_CC} $(MP_EXTRA_LD_PRE)  -o dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX}  ${OBJECTFILES_QUOTED_IF_SPACED}    "..\..\..\..\..\..\..\Program Files (x86)\Microchip\xc16\v1.25\lib\libdsp-elf.a"  -mcpu=$(MP_PROCESSOR_OPTION)        -omf=elf -no-legacy-libc  -I"src" -Wl,--local-stack,--defsym=__MPLAB_BUILD=1,$(MP_LINKER_FILE_OPTION),--stack=16,--check-sections,--data-init,--pack-data,--handles,--isr,--no-gc-sections,--fill-upper=0,--stackguard=16,--no-force-link,--smart-io,-Map="${DISTDIR}/${PROJECTNAME}.${IMAGE_TYPE}.map",--report-mem,--memorysummary,dist/${CND_CONF}/${IMAGE_TYPE}/memoryfile.xml$(MP_EXTRA_LD_POST) 
 	${MP_CC_DIR}\\xc16-bin2hex dist/${CND_CONF}/${IMAGE_TYPE}/dsPIC33EV256GM102ISP.X.${IMAGE_TYPE}.${DEBUGGABLE_SUFFIX} -a  -omf=elf  
 	
 endif

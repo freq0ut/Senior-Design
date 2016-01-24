@@ -9,13 +9,13 @@ close all;
 clear all;
 clc;
 
-addpath('/Users/betio32/Documents/myGitHub/Senior-Design/MATLAB/Support_Functions/FFT/');
+addpath('/Users/betio32/Documents/GitHub/Senior-Design/MATLAB/Support_Functions/FFT/');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% READ IN DATA FROM THE .CSV FILE %%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-fileID = fopen('sigCmpx.csv','r');% Open file
+fileID = fopen('sigCmpx1.csv','r');% Open file
 
     Data_File = textscan(fileID,'%s %s');% Read in entire CSV file into memory as a cell array
     
@@ -59,18 +59,9 @@ f0 = fS/(N-1);% Frequency resolution [Hz]
 f = f0*(0:N-1);% Frequency Array (single-sided)
 t = Ts*(0:N-1);% Time Array
 
-% % Creating a 1kHz square wave (50% duty cycle) with 10 samples per period
-% % with ZERO DC offset.
-% y_MATLAB = ones(1,N);
-% for i=0:N-1;
-%     if (mod(i,10) >= 5)
-%         y_MATLAB(i+1) = -1;
-%     end
-% end
-
 y_MATLAB = cos(2*pi*40e3*t);
 
-Y_MATLAB = fft(y_MATLAB) / N;
+Y_MATLAB = fft(y_MATLAB,N) / N;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%% PLOTTING %%%%%%%%%%

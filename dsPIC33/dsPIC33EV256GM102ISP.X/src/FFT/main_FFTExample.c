@@ -1,19 +1,21 @@
+/*
+*   Joshua Simmons
+*
+*   January 21, 2016
+*
+*   Turns an LED on and off using a delay.
+*/
+
 #include "config.h"
-#include <p33Exxxx.h>
 #include <dsp.h>
 #include "fft.h"
 
-/*******************************************************************
-** Device configuration register macros for building the hex file **
-*******************************************************************/
-//_FOSC(CSW_FSCM_OFF & XT_PLL8);// XT with 8xPLL oscillator, Failsafe clock off
-//_FWDT(WDT_OFF);               // Watchdog timer disabled
-//_FBORPOR(PBOR_OFF & MCLR_EN); // Brown-out reset disabled, MCLR reset enabled
-//_FGS(CODE_PROT_OFF);          // Code protect disabled
-
-
 // Extern Definitions
-extern fractcomplex sigCmpx[FFT_BLOCK_LENGTH]// Real input signal, stored in a complex array in Y-Space
+extern fractcomplex sigCmpx1[FFT_BLOCK_LENGTH]// Real input signal, stored in a complex array in Y-Space
+__attribute__ ((section (".ydata, data, ymemory"),
+aligned (FFT_BLOCK_LENGTH*2*2)));
+
+extern fractcomplex sigCmpx2[FFT_BLOCK_LENGTH]// Real input signal, stored in a complex array in Y-Space
 __attribute__ ((section (".ydata, data, ymemory"),
 aligned (FFT_BLOCK_LENGTH*2*2)));
 
@@ -30,9 +32,33 @@ int	peakFrequencyBin = 0;
 unsigned long peakFrequency = 0;
 
 int main(void) {
+    
+    /*******************************************************
+    ********** OSCILLATOR CHANGE OVER FOR 70 MIPS **********
+    *******************************************************/
+
+    // For use with 20 MHz external oscillator only!
+    PLLFBD = 54; // M = 56, PLL Feedback Divisor
+    CLKDIVbits.PLLPOST = 2; // N1 = 4, PLL Pre-scalar
+    CLKDIVbits.PLLPRE = 0; // N2 = 2, PLL Post-scalar
+
+    // Initiate Clock Switch to Primary Oscillator with PLL (NOSC = 0b011)
+    __builtin_write_OSCCONH(0x03);
+    __builtin_write_OSCCONL(0x01);
+
+    // Wait for Clock switch to occur
+    while (OSCCONbits.COSC != 0b011);
+
+    // Wait for PLL to lock
+    while(OSCCONbits.LOCK != 1) {};
+    
+    /************************************************
+    ********** COMPUTING CROSS-CORRELATION **********
+    ************************************************/
+    
 	int i = 0;
-	fractional *p_real = &sigCmpx[0].real;
-	fractcomplex *p_cmpx = &sigCmpx[0];
+	fractional *p_real = &sigCmpx1[0].real;
+	fractcomplex *p_cmpx = &sigCmpx1[0];
 
 	// Generate TwiddleFactor Coefficients (Only once at stary-up)
 	#ifndef FFTTWIDCOEFFS_IN_PROGMEM
@@ -50,8 +76,8 @@ int main(void) {
 
 	// Set up pointers to convert real array to a complex array.
 	// The input array initially has all the real input samples followed by a series of zeros. 
-	p_real = &sigCmpx[(FFT_BLOCK_LENGTH/2)-1].real;
-	p_cmpx = &sigCmpx[FFT_BLOCK_LENGTH-1];
+	p_real = &sigCmpx1[(FFT_BLOCK_LENGTH/2)-1].real;
+	p_cmpx = &sigCmpx1[FFT_BLOCK_LENGTH-1];
 
 	// Convert the Real input sample array to a Complex input sample array.
 	// We do this by zeroing out the imaginary part of each data sample.
@@ -62,22 +88,23 @@ int main(void) {
     
 	// Perform FFT operation
 	#ifndef FFTTWIDCOEFFS_IN_PROGMEM
-		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], &twiddleFactors[0], COEFFS_IN_DATA);
+		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx1[0], &twiddleFactors[0], COEFFS_IN_DATA);
 	#else
-		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx[0], (fractcomplex *) __builtin_psvoffset(&twiddleFactors[0]), (int) __builtin_psvpage(&twiddleFactors[0]));
+		FFTComplexIP (LOG2_BLOCK_LENGTH, &sigCmpx1[0], (fractcomplex *) __builtin_psvoffset(&twiddleFactors[0]), (int) __builtin_psvpage(&twiddleFactors[0]));
 	#endif
 
 	// Store output samples in bit-reversed order of their addresses
-	BitReverseComplex (LOG2_BLOCK_LENGTH, &sigCmpx[0]);
+	BitReverseComplex (LOG2_BLOCK_LENGTH, &sigCmpx1[0]);
 
 	// Compute the square magnitude of the complex FFT output array so we have a Real output vector
-	SquareMagnitudeCplx(FFT_BLOCK_LENGTH, &sigCmpx[0], &sigCmpx[0].real);
+	SquareMagnitudeCplx(FFT_BLOCK_LENGTH, &sigCmpx1[0], &sigCmpx1[0].real);
 
 	// Find the frequency Bin ( = index into the SigCmpx[] array) that has the largest energy
-	VectorMax(FFT_BLOCK_LENGTH/2, &sigCmpx[0].real, &peakFrequencyBin);
+	VectorMax(FFT_BLOCK_LENGTH/2, &sigCmpx1[0].real, &peakFrequencyBin);
 
 	// Compute the frequency (in Hz) of the largest spectral component
 	peakFrequency = peakFrequencyBin*(SAMPLING_RATE/FFT_BLOCK_LENGTH);
 
+	// Infinite Loop
 	while (1);
 }

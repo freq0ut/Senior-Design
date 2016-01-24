@@ -8,13 +8,11 @@ close all;
 clear all;
 clc;
 
-addpath('/Users/betio32/Documents/myGitHub/myPrograms/myMATLAB/my_MATLAB_Functions');
+addpath('/Users/betio32/Documents/GitHub/myPrograms/myMATLAB/my_MATLAB_Functions');
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% USER INPUT %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-fileName = sprintf('Chan1_Sampled.txt');
 
 bits = 16;% Signed (2s Comp) with binary point between bits 1 and 2
 fS = 1e6;% Sample Frequency [Hz]
@@ -24,15 +22,20 @@ N = 256;% Total number of samples
 %%%%%%%%%%%%%%% GENERATING SINUSOID %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-tS = 1/fS;
+Ts = 1/fS;
 
-t = tS*(0:N-1);
+t = Ts*(0:N-1);
 
-y = cos(2*pi*40e3*t);
+y1 = cos(2*pi*40e3*t);
+y2 = cos(2*pi*40e3*(t-5e-6));
 
 for i=1:N;
-    if (y(i) == 1)
-        y(i) = 1-2^-15;
+    if (y1(i) == 1)
+        y1(i) = 1-2^-15;
+    end
+    
+    if (y2(i) == 1)
+        y2(i) = 1-2^-15;
     end
 end
 
@@ -40,32 +43,40 @@ end
 %%%%%%%%%%%%%%% CONVERTING SINUSOID FROM DECIMAL TO BINARY (2's COMP) TO HEX %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-yBin = DECTOBIN(y,16,1);
-yHex = BINTOHEX(yBin);
+y1Bin = DECTOBIN(y1,16,1);
+y1Hex = BINTOHEX(y1Bin);
+
+y2Bin = DECTOBIN(y2,16,1);
+y2Hex = BINTOHEX(y2Bin);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%% WRITING .TXT FILE %%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 
-fileID = fopen(fileName,'w');
+fileID = fopen('Chan2_Sampled.txt','w');
 
-hexs = size(yHex,1);
+hexs = size(y1Hex,1);
 
-for col=1:N;
-    
-    fprintf(fileID,'0x');
-    
-    for row=1:hexs;
-        fprintf(fileID,'%c',char(yHex(row,col)));
+for col=1:2*N;
+
+    if (col <= N)
+        fprintf(fileID,'0x');
+        
+        for row=1:hexs;
+            fprintf(fileID,'%c',char(y2Hex(row,col)));
+        end
+        
+        fprintf(fileID,', ');
+    else
+        fprintf(fileID,'0x0000, ');
     end
-
-    fprintf(fileID,',\n');
-
+    
+    if (mod(col,5) == 0)
+        fprintf(fileID,'\n');
+    end
+    
 end
 
-%%%%%%%%%%%%%%%%%%%%%%%%
-%%%%% CLOSING FILE %%%%%
-%%%%%%%%%%%%%%%%%%%%%%%%
 fclose(fileID);
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
